@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="vi" class="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>
+      ConteL — Content Intelligence · Sức khỏe Nội dung các chương trình của VTV
+    </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            fontFamily: { sans: ['"Be Vietnam Pro"', "sans-serif"] },
+            colors: {
+              brand: {
+                50: "#eef2ff",
+                100: "#e0e7ff",
+                500: "#6366f1",
+                600: "#4f46e5",
+                700: "#4338ca",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        font-family: "Be Vietnam Pro", sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background: #475569;
+      }
+      .tip {
+        position: relative;
+        display: inline-flex;
+        cursor: help;
+      }
+      .tip > span {
+        visibility: hidden;
+        opacity: 0;
+        transition: 0.2s;
+        position: absolute;
+        bottom: 135%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: max-content;
+        max-width: 270px;
+        z-index: 60;
+      }
+      .tip:hover > span {
+        visibility: visible;
+        opacity: 1;
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      table {
+        border-collapse: separate;
+        border-spacing: 0;
+      }
+      thead th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .grp-c {
+        background: rgba(99, 102, 241, 0.05);
+      }
+      .dark .grp-c {
+        background: rgba(99, 102, 241, 0.13);
+      }
+      .grp-s {
+        background: rgba(14, 165, 233, 0.05);
+      }
+      .dark .grp-s {
+        background: rgba(14, 165, 233, 0.13);
+      }
+      .sq {
+        display: grid;
+        grid-template-columns: repeat(2, 5px);
+        grid-template-rows: repeat(3, 5px);
+        gap: 3px;
+      }
+      .sq i {
+        display: block;
+        width: 5px;
+        height: 5px;
+        background: #22d3ee;
+        border-radius: 1px;
+      }
+      .sq i.o {
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 text-[13px]"
+  >
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

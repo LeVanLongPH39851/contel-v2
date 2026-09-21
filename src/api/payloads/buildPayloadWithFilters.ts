@@ -1,0 +1,463 @@
+// src/api/payloads/buildPayloadWithFilters.ts
+
+interface Filter {
+  col: string;
+  op: string;
+  val: string | string[];
+}
+
+interface TimeRange {
+  min: number;
+  max: number;
+}
+
+interface FilterState {
+  days?: string[];
+  channels?: string[];
+  channelMultiples?: string[];
+  provinces?: string[];
+  regionals?: string[];
+  keyCities?: string[];
+  timebands?: string[];
+  firstLevels?: string[];
+  programs?: string[];
+  programMultiples?: string[];
+  adCodes?: string[];
+  platforms?: string[];
+  spotTypes?: string[];
+  groups?: string[];
+  products?: string[];
+  advertisers?: string[];
+  campaigns?: string[];
+  brands?: string[];
+  weeks?: string[];
+
+  dates?: string[];
+  startDate?: string[];
+  endDate?: string[];
+
+  startHours?: TimeRange;
+  startMinutes?: TimeRange;
+}
+
+interface Query {
+  filters?: Filter[];
+  time_range?: string;
+  [key: string]: any;
+}
+
+interface Payload {
+  payload: {
+    queries: Query[];
+    form_data?: {
+      extra_form_data?: {
+        time_range?: string;
+        [key: string]: any;
+      };
+      [key: string]: any;
+    };
+    [key: string]: any;
+  };
+  [key: string]: any;
+}
+
+const toTimeRangeString = (
+  startDate?: string,
+  endDate?: string,
+): string | null => {
+  if (!startDate && !endDate) return null;
+
+  const s = startDate ? `${startDate}T00:00:00` : null;
+  const e = endDate ? `${endDate}T23:59:59` : null;
+
+  const start = s ?? e?.replace("T23:59:59", "T00:00:00");
+
+  const end = e ?? s?.replace("T00:00:00", "T23:59:59");
+
+  return `${start} : ${end}`;
+};
+
+const buildQueriesFilters = ({
+  column,
+  values,
+}: {
+  column: string;
+  values?: string[];
+}): Filter[] | null => {
+  if (!values || values.length === 0) return null;
+
+  return [
+    {
+      col: column,
+      op: "IN",
+      val: values,
+    },
+  ];
+};
+
+const buildQueriesRangeFilters = ({
+  column,
+  startHours,
+  startMinutes,
+  op = "<=",
+}: {
+  column: string;
+  startHours?: TimeRange;
+  startMinutes?: TimeRange;
+  op?: string;
+}): Filter[] | null => {
+  if (
+    startHours?.min === 0 &&
+    startHours?.max === 23 &&
+    startMinutes?.min === 0 &&
+    startMinutes?.max === 59
+  ) {
+    return null;
+  }
+
+  return [
+    {
+      col: column,
+      op: ">=",
+      val:
+        startHours?.min.toString().padStart(2, "0") +
+        ":" +
+        startMinutes?.min.toString().padStart(2, "0"),
+    },
+    {
+      col: column,
+      op,
+      val:
+        startHours?.max.toString().padStart(2, "0") +
+        ":" +
+        startMinutes?.max.toString().padStart(2, "0"),
+    },
+  ];
+};
+
+const appendFilters = (
+  existingFilters: Filter[] | undefined,
+  newFilters: Filter[],
+): Filter[] => {
+  if (!existingFilters || !Array.isArray(existingFilters)) {
+    return newFilters;
+  }
+
+  return [...existingFilters, ...newFilters];
+};
+
+const appendAllFilters = (
+  queries: Query[] | undefined,
+  filterState: FilterState | undefined,
+  disabledFilters: string[],
+): Query[] | undefined => {
+  if (!queries || !filterState) return queries;
+
+  const normalizedDays = filterState.days?.includes("InWeek")
+    ? ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "InWeek"]
+    : filterState.days?.includes("Weekend")
+      ? ["Saturday", "Sunday", "Weekend"]
+      : filterState.days;
+
+  const FILTER_CONFIG = [
+    {
+      key: "days",
+      disabledKey: "dayFilters",
+      build: () =>
+        buildQueriesFilters({
+          column: "day",
+          values: normalizedDays,
+        }),
+    },
+    {
+      key: "channels",
+      disabledKey: "channelFilters",
+      build: () =>
+        buildQueriesFilters({
+          column: "channel_name_tvd",
+          values: filterState.channels,
+        }),
+    },
+    {
+      key: "channelMultiples",
+      disabledKey: "channelMultipleFilters",
+      build: () =>
+        buildQueriesFilters({
+          column: "channel_name_tvd",
+          values: filterState.channelMultiples,
+        }),
+    },
+    {
+      key: "provinces",
+      disabledKey: "provinceFilters",
+      build: () =>
+        buildQueriesFilters({
+          column: "province",
+          values: filterState.provinces,
+        }),
+    },
+    {
+      key: "regionals",
+      disabledKey: "regionalFilters",
+      build: () =>
+        buildQueriesFilters({
+          column: "regional_name",
+          values: filterState.regionals,
+        }),
+    },
+    {
+      key: "keyCities",
+      disabledKey: "keyCityFilters",
+      build: () =>
+        buildQueriesFilters({
+          column: "key_city",
+          values: filterState.keyCities,
+        }),
+    },
+    {
+      key: "timebands",
+      disabledKey: "timebandFilters",
+      build: () =>
+        buildQueriesFilters({
+          column: "time_band",
+          values: filterState.timebands,
+        }),
+    },
+    {
+      key: "firstLevels",
+      disabledKey: "firstLevelFilters",
+      build: () =>
+        buildQueriesFilters({
+          column: "firstlevel_vn",
+          values: filterState.firstLevels,
+        }),
+    },
+    {
+      key: "programs",
+      disabledKey: "programFilters",
+      build: () =>
+        buildQueriesFilters({
+          column: "program_name",
+          values: filterState.programs,
+        }),
+    },
+    {
+      key: "programMultiples",
+      disabledKey: "programMultipleFilters",
+      build: () =>
+        buildQueriesFilters({
+          column: "program_name",
+          values: filterState.programMultiples,
+        }),
+    },
+    {
+      key: "adCodes",
+      disabledKey: "adCodeFilters",
+      build: () =>
+        buildQueriesFilters({
+          column: "ads_code",
+          values: filterState.adCodes,
+        }),
+    },
+    {
+      key: "platforms",
+      disabledKey: "platformFilters",
+      build: () =>
+        buildQueriesFilters({
+          column: "platform",
+          values: filterState.platforms,
+        }),
+    },
+    {
+      key: "spotTypes",
+      disabledKey: "spotTypeFilters",
+      build: () =>
+        buildQueriesFilters({
+          column: "spot_type",
+          values: filterState.spotTypes,
+        }),
+    },
+    {
+      key: "groups",
+      disabledKey: "groupFilters",
+      build: () =>
+        buildQueriesFilters({
+          column: "group",
+          values: filterState.groups,
+        }),
+    },
+    {
+      key: "products",
+      disabledKey: "productFilters",
+      build: () =>
+        buildQueriesFilters({
+          column: "product",
+          values: filterState.products,
+        }),
+    },
+    {
+      key: "advertisers",
+      disabledKey: "advertiserFilters",
+      build: () =>
+        buildQueriesFilters({
+          column: "advertiser",
+          values: filterState.advertisers,
+        }),
+    },
+    {
+      key: "campaigns",
+      disabledKey: "campaignFilters",
+      build: () =>
+        buildQueriesFilters({
+          column: "campaign_name",
+          values: filterState.campaigns,
+        }),
+    },
+    {
+      key: "brands",
+      disabledKey: "brandFilters",
+      build: () =>
+        buildQueriesFilters({
+          column: "brand",
+          values: filterState.brands,
+        }),
+    },
+    {
+      key: "weeks",
+      disabledKey: "weekFilters",
+      build: () =>
+        buildQueriesFilters({
+          column: "start_of_week",
+          values: filterState.weeks?.map((week) => {
+            const match = week.match(/\d{2}\/\d{2}\/\d{4}/);
+
+            if (!match) return week;
+
+            const [day, month, year] = match[0].split("/");
+
+            return `${year}-${month}-${day}`;
+          }),
+        }),
+    },
+  ];
+
+  return queries.map((q) => {
+    let newFilters = q.filters || [];
+
+    FILTER_CONFIG.forEach(({ disabledKey, build }) => {
+      const builtFilter = build();
+
+      if (
+        builtFilter &&
+        !disabledFilters.includes(disabledKey) &&
+        !disabledFilters.includes("allFilters")
+      ) {
+        if (builtFilter[0].col === "channel_name_tvd") {
+          newFilters = newFilters.filter((f) => f.col !== "channel_name_tvd");
+        }
+
+        if (builtFilter[0].col === "program_name") {
+          newFilters = newFilters.filter((f) => f.col !== "program_name");
+        }
+
+        newFilters = appendFilters(newFilters, builtFilter);
+      }
+    });
+
+    return {
+      ...q,
+      filters: newFilters,
+    };
+  });
+};
+
+const getSessionUserId = (): string | null => {
+  try {
+    return sessionStorage.getItem("user_id");
+  } catch {
+    return null;
+  }
+};
+
+export const buildPayloadWithFilters = (
+  basePayload: Payload,
+  filterState: FilterState | undefined,
+  enabledFilters: string[] = [],
+): Payload => {
+  const next: Payload = structuredClone(basePayload);
+
+  if (
+    enabledFilters.includes("overwriteChannelFilters") &&
+    filterState?.channels &&
+    filterState.channels.length > 0
+  ) {
+    if (!enabledFilters.includes("oneDateFilters")) {
+      next.payload.queries[0].filters = [
+        {
+          col: "date",
+          op: "TEMPORAL_RANGE",
+          val: ["No filter"],
+        },
+      ];
+    } else {
+      next.payload.queries[0].filters = [
+        {
+          col: "date",
+          op: "TEMPORAL_RANGE",
+          val: ["No filter"],
+        },
+        {
+          col: "event_hour_minute",
+          op: "NOT IN",
+          val: ["active"],
+        },
+      ];
+    }
+  }
+
+  const sessionUserId = getSessionUserId();
+
+  if (sessionUserId) {
+    next.payload.queries = (next.payload.queries || []).map((q) => ({
+      ...q,
+      filters: appendFilters(q.filters || [], [
+        {
+          col: "user_id",
+          op: "IN",
+          val: [sessionUserId],
+        },
+      ]),
+    }));
+  }
+
+  let startDate: string | undefined;
+  let endDate: string | undefined;
+
+  if (!enabledFilters.includes("dateFilters")) {
+    startDate = endDate = filterState?.dates?.[0];
+  } else if (!enabledFilters.includes("dateMultipleFilters")) {
+    startDate = filterState?.startDate?.[0];
+    endDate = filterState?.endDate?.[0];
+  }
+
+  const timeRange = toTimeRangeString(startDate, endDate);
+
+  if (timeRange) {
+    next.payload.queries = (next.payload.queries || []).map((q) => ({
+      ...q,
+      time_range: timeRange,
+    }));
+
+    next.payload.form_data = next.payload.form_data || {};
+
+    next.payload.form_data.extra_form_data =
+      next.payload.form_data.extra_form_data || {};
+
+    next.payload.form_data.extra_form_data.time_range = timeRange;
+  }
+
+  next.payload.queries =
+    appendAllFilters(next.payload.queries, filterState, enabledFilters) || [];
+
+  return next;
+};
