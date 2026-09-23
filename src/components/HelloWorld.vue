@@ -1283,10 +1283,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, watch } from "vue";
 import { useDashboardData } from "../composables/useDashboardData";
 
 const dashboard = useDashboardData();
+console.log(dashboard);
 
 declare const Chart: any;
 
@@ -2051,6 +2052,209 @@ onMounted(() => {
     isDark() ? "rgba(148,163,184,.12)" : "rgba(100,116,139,.12)";
   const TICK = (): string => (isDark() ? "#64748b" : "#94a3b8");
 
+  const getContentArray = (): any[] => {
+    const val = dashboard?.Chart1113?.value;
+    if (Array.isArray(val)) return val;
+    if (Array.isArray(val?.data)) return val.data;
+    if (Array.isArray(val?.result?.[0]?.data)) return val.result[0].data;
+    return [];
+  };
+
+  const getSlotArray = (): any[] => {
+    const val = dashboard?.Chart1121?.value;
+    if (Array.isArray(val)) return val;
+    if (Array.isArray(val?.data)) return val.data;
+    if (Array.isArray(val?.result?.[0]?.data)) return val.result[0].data;
+    return [];
+  };
+
+  const normalizeCategory = (cat: any): string => {
+    if (!cat || typeof cat !== "string") return "";
+    return cat.replace(/[–—]/g, "-").replace(/≥/g, ">=").trim();
+  };
+
+  function rDistChart(okList?: AggregatedItem[]): void {
+    const bins = ["<20", "20–34", "35–49", "50–64", "65–79", "≥80"];
+    const binKeys = ["<20", "20-34", "35-49", "50-64", "65-79", ">=80"];
+
+    let c = [0, 0, 0, 0, 0, 0];
+    let s = [0, 0, 0, 0, 0, 0];
+
+    const rawContent = getContentArray();
+    const rawSlot = getSlotArray();
+
+    const hasApiContent = rawContent.length > 0;
+    const hasApiSlot = rawSlot.length > 0;
+
+    if (hasApiContent || hasApiSlot) {
+      const contentCounts: Record<string, number> = {
+        "<20": 0,
+        "20-34": 0,
+        "35-49": 0,
+        "50-64": 0,
+        "65-79": 0,
+        ">=80": 0,
+      };
+      const slotCounts: Record<string, number> = {
+        "<20": 0,
+        "20-34": 0,
+        "35-49": 0,
+        "50-64": 0,
+        "65-79": 0,
+        ">=80": 0,
+      };
+
+      if (hasApiContent) {
+        rawContent.forEach((item: any) => {
+          const key = normalizeCategory(item.content_score_category);
+          const val = Number(
+            item["COUNT(content_score_category)"] ??
+              item.count ??
+              Object.values(item).find((v) => typeof v === "number") ??
+              0,
+          );
+          if (key in contentCounts) contentCounts[key] = val;
+        });
+      }
+
+      if (hasApiSlot) {
+        rawSlot.forEach((item: any) => {
+          const key = normalizeCategory(item.slot_score_category);
+          const val = Number(
+            item["COUNT(slot_score_category)"] ??
+              item.count ??
+              Object.values(item).find((v) => typeof v === "number") ??
+              0,
+          );
+          if (key in slotCounts) slotCounts[key] = val;
+        });
+      }
+
+      c = binKeys.map((k) => contentCounts[k]);
+      s = binKeys.map((k) => slotCounts[k]);
+    } else {
+      const bi = (v: number): number =>
+        v < 20 ? 0 : v < 35 ? 1 : v < 50 ? 2 : v < 65 ? 3 : v < 80 ? 4 : 5;
+      const ok = okList || agg(fLogs()).filter((r) => r.n >= 4);
+      ok.forEach((r) => {
+        c[bi(r.content_score)]++;
+        s[bi(r.slot_score)]++;
+      });
+    }
+
+    if (dc) dc.destroy();
+    const distChartEl = document.getElementById(
+      "distChart",
+    ) as HTMLCanvasElement | null;
+    if (distChartEl) {
+      dc = new Chart(distChartEl, {
+        type: "bar",
+        data: {
+          labels: bins,
+          datasets: [
+            {
+              label: "Điểm Sức khỏe Nội dung",
+              data: c,
+              backgroundColor: "#6366f1",
+              borderRadius: 4,
+            },
+            {
+              label: "Điểm Vị trí Phát sóng",
+              data: s,
+              backgroundColor: "#0ea5e9",
+              borderRadius: 4,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: { boxWidth: 9, font: { size: 10 }, color: TICK() },
+            },
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 10 }, color: TICK() },
+            },
+            y: {
+              grid: { color: GRID() },
+              ticks: { font: { size: 10 }, color: TICK(), precision: 0 },
+            },
+          },
+        },
+      });
+    }
+  }
+
+  const getRiskArray = (): any[] => {
+    const val = dashboard?.Chart1114?.value;
+    if (Array.isArray(val)) return val;
+    if (Array.isArray(val?.data)) return val.data;
+    if (Array.isArray(val?.result?.[0]?.data)) return val.result[0].data;
+    return [];
+  };
+
+  function rRisk(fallbackOk?: AggregatedItem[]): void {
+    const rawRiskData = getRiskArray();
+    const riskCount = document.getElementById("risk-count");
+    const riskList = document.getElementById("risk-list");
+
+    if (rawRiskData.length > 0) {
+      if (riskCount) riskCount.textContent = String(rawRiskData.length);
+      if (riskList) {
+        riskList.innerHTML = rawRiskData
+          .map((item: any) => {
+            const rawScore = Number(
+              item["AVG(content_score)"] ??
+                item.content_score ??
+                Object.values(item).find((v) => typeof v === "number") ??
+                0,
+            );
+            const score = Math.round(rawScore);
+            const [lb, cl] = band(score);
+            const subtitle = [
+              item.channel_name_tvd || item.channel,
+              item.time_group || (item.hour != null ? hh(item.hour) : ""),
+              item.typo_first || item.genre,
+            ]
+              .filter(Boolean)
+              .join(" · ");
+
+            return `<div class="px-4 py-2.5 flex items-center gap-3">
+   <div class="min-w-0 flex-1"><div class="text-[11px] font-semibold truncate">${item.program_name || item.name}</div>
+    <div class="text-[10px] text-slate-400 truncate">${subtitle}</div></div>
+   <div class="text-right shrink-0"><div class="text-[15px] font-extrabold leading-none ${cl}">${score}</div>
+    <div class="text-[9px] ${cl} mt-0.5">${lb}</div></div></div>`;
+          })
+          .join("");
+      }
+    } else {
+      const ok = fallbackOk || agg(fLogs()).filter((r) => r.n >= 4);
+      const risk = ok
+        .filter((r) => r.content_score < 35)
+        .sort((a, b) => a.content_score - b.content_score);
+      if (riskCount) riskCount.textContent = String(risk.length);
+      if (riskList) {
+        riskList.innerHTML =
+          risk
+            .map((r) => {
+              const [lb, cl] = band(r.content_score);
+              return `<div class="px-4 py-2.5 flex items-center gap-3">
+   <div class="min-w-0 flex-1"><div class="text-[11px] font-semibold truncate">${r.name}</div>
+    <div class="text-[10px] text-slate-400 truncate">${r.channel} · ${hh(r.hour)} · ${r.genre}</div></div>
+   <div class="text-right shrink-0"><div class="text-[15px] font-extrabold leading-none ${cl}">${r.content_score}</div>
+    <div class="text-[9px] ${cl} mt-0.5">${lb}</div></div></div>`;
+            })
+            .join("") ||
+          '<div class="px-4 py-6 text-[11px] text-slate-400 text-center">Không có chương trình nào dưới ngưỡng</div>';
+      }
+    }
+  }
+
   function rOv(): void {
     let rows = agg(fLogs()).filter(
       (r) => !S.ovS || r.name.toLowerCase().includes(S.ovS.toLowerCase()),
@@ -2070,27 +2274,7 @@ onMounted(() => {
     const ovCount = document.getElementById("ov-count");
     if (ovCount) ovCount.textContent = rows.length + " chương trình";
 
-    const risk = ok
-      .filter((r) => r.content_score < 35)
-      .sort((a, b) => a.content_score - b.content_score);
-    const riskCount = document.getElementById("risk-count");
-    if (riskCount) riskCount.textContent = String(risk.length);
-
-    const riskList = document.getElementById("risk-list");
-    if (riskList) {
-      riskList.innerHTML =
-        risk
-          .map((r) => {
-            const [lb, cl] = band(r.content_score);
-            return `<div class="px-4 py-2.5 flex items-center gap-3">
-   <div class="min-w-0 flex-1"><div class="text-[11px] font-semibold truncate">${r.name}</div>
-    <div class="text-[10px] text-slate-400 truncate">${r.channel} · ${hh(r.hour)} · ${r.genre}</div></div>
-   <div class="text-right shrink-0"><div class="text-[15px] font-extrabold leading-none ${cl}">${r.content_score}</div>
-    <div class="text-[9px] ${cl} mt-0.5">${lb}</div></div></div>`;
-          })
-          .join("") ||
-        '<div class="px-4 py-6 text-[11px] text-slate-400 text-center">Không có chương trình nào dưới ngưỡng</div>';
-    }
+    rRisk(ok);
 
     const rm: Record<string, number[]> = {};
     ok.forEach((r) => {
@@ -2156,61 +2340,7 @@ onMounted(() => {
         .join("");
     }
 
-    const bins = ["<20", "20–34", "35–49", "50–64", "65–79", "≥80"];
-    const bi = (v: number): number =>
-      v < 20 ? 0 : v < 35 ? 1 : v < 50 ? 2 : v < 65 ? 3 : v < 80 ? 4 : 5;
-    const c = [0, 0, 0, 0, 0, 0];
-    const s = [0, 0, 0, 0, 0, 0];
-    ok.forEach((r) => {
-      c[bi(r.content_score)]++;
-      s[bi(r.slot_score)]++;
-    });
-    if (dc) dc.destroy();
-    const distChartEl = document.getElementById(
-      "distChart",
-    ) as HTMLCanvasElement | null;
-    if (distChartEl) {
-      dc = new Chart(distChartEl, {
-        type: "bar",
-        data: {
-          labels: bins,
-          datasets: [
-            {
-              label: "Điểm Sức khỏe Nội dung",
-              data: c,
-              backgroundColor: "#6366f1",
-              borderRadius: 4,
-            },
-            {
-              label: "Điểm Vị trí Phát sóng",
-              data: s,
-              backgroundColor: "#0ea5e9",
-              borderRadius: 4,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: "bottom",
-              labels: { boxWidth: 9, font: { size: 10 }, color: TICK() },
-            },
-          },
-          scales: {
-            x: {
-              grid: { display: false },
-              ticks: { font: { size: 10 }, color: TICK() },
-            },
-            y: {
-              grid: { color: GRID() },
-              ticks: { font: { size: 10 }, color: TICK(), precision: 0 },
-            },
-          },
-        },
-      });
-    }
+    rDistChart(ok);
   }
 
   function rProg(): void {
@@ -2791,5 +2921,20 @@ onMounted(() => {
   pills("f-time", TIME_GROUPS, "time");
   pills("f-weekday", WEEKDAYS, "weekday");
   render();
+
+  watch(
+    [
+      () => dashboard?.Chart1113?.value,
+      () => dashboard?.Chart1121?.value,
+      () => dashboard?.Chart1114?.value,
+    ],
+    () => {
+      if (S.tab === "t1") {
+        rDistChart();
+        rRisk();
+      }
+    },
+    { deep: true },
+  );
 });
 </script>

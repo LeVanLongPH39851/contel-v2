@@ -1,7 +1,17 @@
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import * as useCallApi from "./useCallApi";
 
-const HOOKS = [{ hook: useCallApi.useChart1877, dataKey: "Chart1877" }];
+const HOOKS = [
+  { hook: useCallApi.useChart1112, dataKey: "Chart1112" },
+  { hook: useCallApi.useChart1113, dataKey: "Chart1113" },
+  { hook: useCallApi.useChart1114, dataKey: "Chart1114" },
+  { hook: useCallApi.useChart1115, dataKey: "Chart1115" },
+  { hook: useCallApi.useChart1116, dataKey: "Chart1116" },
+  { hook: useCallApi.useChart1117, dataKey: "Chart1117" },
+  { hook: useCallApi.useChart1118, dataKey: "Chart1118" },
+  { hook: useCallApi.useChart1120, dataKey: "Chart1120" },
+  { hook: useCallApi.useChart1121, dataKey: "Chart1121" },
+];
 
 export const useDashboardData = () => {
   const hookResults = HOOKS.map(({ hook }) => hook());
@@ -57,6 +67,8 @@ export const useDashboardData = () => {
     }
   };
 
+  watch([data, isLoading], checkLoaded, { deep: true });
+
   return {
     ...Object.fromEntries(
       HOOKS.map(({ dataKey }) => [
@@ -64,7 +76,6 @@ export const useDashboardData = () => {
         computed(() => data.value[dataKey]),
       ]),
     ),
-    data,
     isLoading,
     hasError,
   };
