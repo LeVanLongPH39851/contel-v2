@@ -420,7 +420,7 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 xl:grid-cols-1 gap-4">
         <div
           class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4"
         >
@@ -439,25 +439,7 @@
               <option value="reach">Độ phủ (Ave.Reach)</option>
             </select>
           </div>
-          <div class="h-[218px]"><canvas id="trendChart"></canvas></div>
-        </div>
-        <div
-          class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4"
-        >
-          <div class="flex items-center gap-2 mb-1">
-            <h2 class="font-bold text-[13px]">Đường giữ chân khán giả</h2>
-            <span class="tip text-slate-400 text-[11px]"
-              >ⓘ<span
-                class="bg-slate-800 text-white text-[10px] leading-relaxed p-2.5 rounded-lg"
-                >Tỷ lệ khán giả còn ở lại theo từng phút, so với nhóm có mặt lúc
-                chương trình bắt đầu.</span
-              ></span
-            >
-            <span class="ml-auto text-[10px] text-slate-400"
-              >Nét đứt là trung bình khung giờ</span
-            >
-          </div>
-          <div class="h-[218px] mt-2"><canvas id="dropChart"></canvas></div>
+          <div class="h-[280px]"><canvas id="trendChart"></canvas></div>
         </div>
       </div>
     </section>
@@ -1286,8 +1268,7 @@
 import { onMounted, watch } from "vue";
 import { useDashboardData } from "../composables/useDashboardData";
 
-const dashboard = useDashboardData();
-console.log(dashboard);
+const dashboard = useDashboardData() as any;
 
 declare const Chart: any;
 
@@ -2045,7 +2026,6 @@ onMounted(() => {
 
   let dc: any;
   let tc: any;
-  let pc2: any;
   const isDark = (): boolean =>
     document.documentElement.classList.contains("dark");
   const GRID = (): string =>
@@ -2074,6 +2054,12 @@ onMounted(() => {
   };
 
   function rDistChart(okList?: AggregatedItem[]): void {
+    const loading = chartLoading("Chart1113") || chartLoading("Chart1121");
+    setCanvasLoading("distChart", loading);
+    if (loading) {
+      if (dc) dc.destroy();
+      return;
+    }
     const bins = ["<20", "20–34", "35–49", "50–64", "65–79", "≥80"];
     const binKeys = ["<20", "20-34", "35-49", "50-64", "65-79", ">=80"];
 
@@ -2198,7 +2184,71 @@ onMounted(() => {
     return [];
   };
 
+  const getChartRows = (chart: any): any[] => {
+    const val = chart?.value;
+    if (Array.isArray(val)) return val;
+    if (Array.isArray(val?.data)) return val.data;
+    if (Array.isArray(val?.result?.[0]?.data)) return val.result[0].data;
+    return [];
+  };
+
+  const chartLoading = (chartId: string): boolean =>
+    Boolean(dashboard?.isLoading?.value?.[chartId]);
+
+  const setLoading = (elementId: string, loading: boolean): boolean => {
+    const element = document.getElementById(elementId);
+    if (!element || !loading) return loading;
+    element.innerHTML =
+      '<div class="px-4 py-6 text-[11px] text-slate-400 text-center animate-pulse">Đang tải dữ liệu...</div>';
+    return loading;
+  };
+
+  const setCanvasLoading = (canvasId: string, loading: boolean): boolean => {
+    const canvas = document.getElementById(canvasId);
+    const parent = canvas?.parentElement;
+    if (!parent) return loading;
+    let overlay = parent.querySelector<HTMLElement>("[data-loading-overlay]");
+    if (loading) {
+      if (!overlay) {
+        overlay = document.createElement("div");
+        overlay.dataset.loadingOverlay = "true";
+        overlay.className =
+          "absolute inset-0 grid place-items-center text-[11px] text-slate-400 animate-pulse bg-white/70 dark:bg-slate-900/70";
+        overlay.textContent = "Đang tải dữ liệu...";
+        parent.classList.add("relative");
+        parent.appendChild(overlay);
+      }
+    } else if (overlay) {
+      overlay.remove();
+    }
+    return loading;
+  };
+
+  const apiNumber = (row: any, key: string): number =>
+    Number(row[key].toFixed(1) ?? 0);
+
+  const apiProgramName = (row: any): string =>
+    row.program_name || row.name || "Không rõ chương trình";
+
+  const apiSubtitle = (row: any): string =>
+    [
+      row.channel_name_tvd || row.channel,
+      row.time_group,
+      row.typo_first || row.genre,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+
+  const apiMetric = (row: any, key: string): number =>
+    apiNumber(row, `AVG(${key})`);
+
   function rRisk(fallbackOk?: AggregatedItem[]): void {
+    if (chartLoading("Chart1114")) {
+      setLoading("risk-list", true);
+      const riskCount = document.getElementById("risk-count");
+      if (riskCount) riskCount.textContent = "";
+      return;
+    }
     const rawRiskData = getRiskArray();
     const riskCount = document.getElementById("risk-count");
     const riskList = document.getElementById("risk-list");
@@ -2256,6 +2306,11 @@ onMounted(() => {
   }
 
   function rOv(): void {
+    if (chartLoading("Chart1115") || chartLoading("Chart1120")) {
+      setLoading("under-list", true);
+      setLoading("ov-body", true);
+      return;
+    }
     let rows = agg(fLogs()).filter(
       (r) => !S.ovS || r.name.toLowerCase().includes(S.ovS.toLowerCase()),
     );
@@ -2276,6 +2331,9 @@ onMounted(() => {
 
     rRisk(ok);
 
+    const apiUnder = getChartRows(dashboard?.Chart1115);
+    const apiOverview = getChartRows(dashboard?.Chart1120);
+
     const rm: Record<string, number[]> = {};
     ok.forEach((r) => {
       (rm[r.timeGroup] = rm[r.timeGroup] || []).push(r.reach);
@@ -2290,28 +2348,67 @@ onMounted(() => {
       })
       .sort((a, b) => b.content_score - a.content_score);
     const underCount = document.getElementById("under-count");
-    if (underCount) underCount.textContent = String(under.length);
+    if (underCount) {
+      underCount.textContent = String(
+        apiUnder.length > 0 ? apiUnder.length : under.length,
+      );
+    }
 
     const underList = document.getElementById("under-list");
     if (underList) {
       underList.innerHTML =
-        under
-          .map(
-            (r) => `
+        (apiUnder.length > 0 ? apiUnder : under)
+          .map((r: any) => {
+            const isApi = apiUnder.length > 0;
+            const name = isApi ? apiProgramName(r) : r.name;
+            const subtitle = isApi
+              ? apiSubtitle(r)
+              : `${r.channel} · ${hh(r.hour)} · Chủ động ${r.rawOvr}%`;
+            const contentScore = isApi
+              ? apiNumber(r, "AVG(content_score)")
+              : r.content_score;
+            const reachScore = isApi
+              ? apiNumber(r, "AVG(reach_score)")
+              : r.reach;
+            return `
   <div class="px-4 py-2.5 flex items-center gap-3">
-   <div class="min-w-0 flex-1"><div class="text-[11px] font-semibold truncate">${r.name}</div>
-    <div class="text-[10px] text-slate-400 truncate">${r.channel} · ${hh(r.hour)} · Chủ động ${r.rawOvr}%</div></div>
-   <div class="text-right shrink-0"><div class="text-[15px] font-extrabold leading-none text-emerald-500">${r.content_score}</div>
-    <div class="text-[9px] text-amber-500 mt-0.5">${fk(r.reach)}</div></div></div>`,
-          )
+   <div class="min-w-0 flex-1"><div class="text-[11px] font-semibold truncate">${name}</div>
+    <div class="text-[10px] text-slate-400 truncate">${subtitle}</div></div>
+   <div class="text-right shrink-0"><div class="text-[15px] font-extrabold leading-none text-emerald-500">${contentScore.toFixed(1)}</div>
+    <div class="text-[9px] text-amber-500 mt-0.5">Reach ${reachScore.toFixed(1)}</div></div></div>`;
+          })
           .join("") ||
         '<div class="px-4 py-6 text-[11px] text-slate-400 text-center">Không có chương trình nào trong nhóm này</div>';
     }
 
     const ovBody = document.getElementById("ov-body");
     if (ovBody) {
-      ovBody.innerHTML = rows
+      ovBody.innerHTML = (apiOverview.length > 0 ? apiOverview : rows)
         .map((r) => {
+          if (apiOverview.length > 0) {
+            const contentScore = apiNumber(r, "AVG(content_score)");
+            const slotScore = apiNumber(r, "AVG(slot_score)");
+            const metric = (key: string): string =>
+              apiNumber(r, key).toFixed(1);
+            const [lb, cl] = band(contentScore);
+            return `<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+   <td class="px-3 py-2" style="padding-left:15px"><div class="font-medium">${apiProgramName(r)}</div>
+    <div class="text-[10px] text-slate-400">1 lượt phát</div></td>
+   <td class="px-3 py-2 text-slate-500">${r.channel_name_tvd || "—"}</td>
+   <td class="px-3 py-2 whitespace-nowrap"><div class="font-medium text-slate-600 dark:text-slate-300">${r.time_group || "—"}</div></td>
+   <td class="px-3 py-2 text-slate-500 text-[10px]">${r.week_day || "—"}</td>
+   <td class="px-3 py-2 text-right grp-c border-l border-slate-100 dark:border-slate-800">
+    <div class="font-extrabold text-[14px] ${cl}">${contentScore.toFixed(1)}</div><div class="text-[9px] ${cl}">${lb}</div></td>
+   <td class="px-2 py-2 text-right grp-c text-slate-500">${metric("AVG(wte_score)")}</td>
+   <td class="px-2 py-2 text-right grp-c text-slate-500">${metric("AVG(rvr_score)")}</td>
+   <td class="px-2 py-2 text-right grp-c text-slate-500">${metric("AVG(ovr_score)")}</td>
+   <td class="px-2 py-2 text-right grp-c text-slate-500">${metric("AVG(arr_score)")}</td>
+   <td class="px-2 py-2 text-right grp-c font-medium">—</td>
+   <td class="px-3 py-2 text-right grp-s border-l border-slate-100 dark:border-slate-800"><span class="font-extrabold text-[14px] text-sky-600">${slotScore.toFixed(1)}</span></td>
+   <td class="px-2 py-2 text-right grp-s text-slate-500">${metric("AVG(slot_rating_score)")}</td>
+   <td class="px-2 py-2 text-right grp-s text-slate-500">${metric("AVG(lead_in_score)")}</td>
+   <td class="px-2 py-2 text-right grp-s text-slate-500">${metric("AVG(lead_out_score)")}</td></tr>`;
+          }
           const en = r.n >= 4;
           const [lb, cl] = band(r.content_score);
           return `<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
@@ -2344,6 +2441,22 @@ onMounted(() => {
   }
 
   function rProg(): void {
+    if (
+      chartLoading("Chart1116") ||
+      chartLoading("Chart1117") ||
+      chartLoading("Chart1118")
+    ) {
+      setLoading("p-content-metrics", true);
+      setLoading("p-slot-metrics", true);
+      setLoading("p-verdict", true);
+      setCanvasLoading("trendChart", true);
+      const contentScore = document.getElementById("p-content-score");
+      const slotScore = document.getElementById("p-slot-score");
+      if (contentScore) contentScore.textContent = "...";
+      if (slotScore) slotScore.textContent = "...";
+      if (tc) tc.destroy();
+      return;
+    }
     const rows = agg(fLogs());
     const sel = document.getElementById(
       "prog-select",
@@ -2359,14 +2472,25 @@ onMounted(() => {
     const r = rows.find((x) => x.name === S.prog) || rows[0];
     if (!r) return;
     S.prog = r.name;
+    const apiContent = getChartRows(dashboard?.Chart1116)[0];
+    const apiSlot = getChartRows(dashboard?.Chart1117)[0];
+    const apiTrend = getChartRows(dashboard?.Chart1118);
+    const hasApiContent = !!apiContent;
+    const hasApiSlot = !!apiSlot;
     const progMeta = document.getElementById("prog-meta");
     if (progMeta) {
       progMeta.textContent = `${r.channel} · ${hh(r.hour)} · ${r.weekday} · ${r.genre} · ${r.duration} phút · ${r.n} lượt phát`;
     }
-    const [lb, cl] = band(r.content_score);
+    const contentScore = hasApiContent
+      ? apiMetric(apiContent, "content_score")
+      : r.content_score;
+    const slotScore = hasApiSlot
+      ? apiMetric(apiSlot, "slot_score")
+      : r.slot_score;
+    const [lb, cl] = band(contentScore);
     const e = document.getElementById("p-content-score");
     if (e) {
-      e.textContent = String(r.content_score);
+      e.textContent = contentScore.toFixed(1);
       e.className =
         "text-[50px] font-extrabold leading-none tracking-tight " + cl;
     }
@@ -2376,7 +2500,7 @@ onMounted(() => {
     }
     const pSlotScore = document.getElementById("p-slot-score");
     if (pSlotScore) {
-      pSlotScore.textContent = String(r.slot_score);
+      pSlotScore.textContent = slotScore.toFixed(1);
     }
 
     const bar = (
@@ -2397,41 +2521,97 @@ onMounted(() => {
 
     const pContentMetrics = document.getElementById("p-content-metrics");
     if (pContentMetrics) {
+      const contentWte = hasApiContent
+        ? apiMetric(apiContent, "wte_score")
+        : r.wte;
+      const contentRvr = hasApiContent
+        ? apiMetric(apiContent, "rvr_score")
+        : r.rvr;
+      const contentOvr = hasApiContent
+        ? apiMetric(apiContent, "ovr_score")
+        : r.ovr;
+      const contentArr = hasApiContent
+        ? apiMetric(apiContent, "arr_score")
+        : r.arr;
+      const contentReach = hasApiContent
+        ? apiMetric(apiContent, "tsv_score")
+        : r.reach;
       pContentMetrics.innerHTML =
-        bar("Hiệu suất xem", "WTE", r.wte, r.rawWte, "%", "0.30", HEX(r.wte)) +
-        bar("Tỷ lệ quay lại", "RVR", r.rvr, r.rawRvr, "%", "0.25", HEX(r.rvr)) +
+        bar(
+          "Hiệu suất xem",
+          "WTE",
+          contentWte,
+          hasApiContent
+            ? apiMetric(apiContent, "watch_time_efficiency")
+            : r.rawWte,
+          "%",
+          "0.30",
+          HEX(contentWte),
+        ) +
+        bar(
+          "Tỷ lệ quay lại",
+          "RVR",
+          contentRvr,
+          hasApiContent
+            ? apiMetric(apiContent, "return_viewer_rate")
+            : r.rawRvr,
+          "%",
+          "0.25",
+          HEX(contentRvr),
+        ) +
         bar(
           "Khán giả chủ động",
           "OVR",
-          r.ovr,
-          r.rawOvr,
+          contentOvr,
+          hasApiContent
+            ? apiMetric(apiContent, "organic_viewer_rate")
+            : r.rawOvr,
           "%",
           "0.25",
-          HEX(r.ovr),
+          HEX(contentOvr),
         ) +
-        bar("Giữ chân", "ARR", r.arr, r.rawArr, "%", "0.20", HEX(r.arr)) +
+        bar(
+          "Giữ chân",
+          "ARR",
+          contentArr,
+          hasApiContent
+            ? apiMetric(apiContent, "retention_viewer_rate")
+            : r.rawArr,
+          "%",
+          "0.20",
+          HEX(contentArr),
+        ) +
         `<div class="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800 flex items-baseline gap-2">
     <span class="text-[11px] font-medium">Độ phủ trung bình</span><span class="text-[10px] text-slate-400">Ave.Reach</span>
-    <span class="ml-auto text-[17px] font-extrabold">${fk(r.reach)}</span></div>`;
+    <span class="ml-auto text-[17px] font-extrabold">${hasApiContent ? contentReach.toFixed(1) : fk(r.reach)}</span></div>`;
     }
 
     const pSlotMetrics = document.getElementById("p-slot-metrics");
     if (pSlotMetrics) {
+      const slotRating = hasApiSlot
+        ? apiMetric(apiSlot, "slot_rating_score")
+        : r.rating;
+      const leadIn = hasApiSlot
+        ? apiMetric(apiSlot, "lead_in_score")
+        : r.leadin;
+      const leadOut = hasApiSlot
+        ? apiMetric(apiSlot, "lead_out_score")
+        : r.leadout;
       pSlotMetrics.innerHTML =
         bar(
           "Khán giả nền khung giờ",
           "Slot Rating",
-          r.rating,
-          r.rawRt,
-          "%",
+          slotRating,
+          hasApiSlot ? apiMetric(apiSlot, "slot_rating") : r.rawRt,
+          "",
           "0.50",
           "#0ea5e9",
         ) +
         bar(
           "Kế thừa khán giả",
           "Lead-in",
-          r.leadin,
-          r.rawLi,
+          leadIn,
+          hasApiSlot ? apiMetric(apiSlot, "lead_in_effect") : r.rawLi,
           "%",
           "0.30",
           "#0ea5e9",
@@ -2439,16 +2619,22 @@ onMounted(() => {
         bar(
           "Chuyển tiếp khán giả",
           "Lead-out",
-          r.leadout,
-          r.rawLo,
+          leadOut,
+          hasApiSlot ? apiMetric(apiSlot, "lead_out_effect") : r.rawLo,
           "%",
           "0.20",
           "#0ea5e9",
         );
     }
 
-    const hp = r.leadin > 60;
-    const og = r.ovr > 60;
+    const verdictLeadIn = hasApiSlot
+      ? apiMetric(apiSlot, "lead_in_score")
+      : r.leadin;
+    const verdictOvr = hasApiContent
+      ? apiMetric(apiContent, "ovr_score")
+      : r.ovr;
+    const hp = verdictLeadIn > 60;
+    const og = verdictOvr > 60;
     const pVerdict = document.getElementById("p-verdict");
     if (pVerdict) {
       pVerdict.innerHTML =
@@ -2477,9 +2663,32 @@ onMounted(() => {
       const metricKey = S.trend as keyof CompMetrics;
       return l.comp[metricKey] ?? 0;
     };
-    const vs = ks.map(
-      (k) => +(bw[k].reduce((a, x) => a + pk(x), 0) / bw[k].length).toFixed(1),
+    const apiTrendMetric: Record<string, string> = {
+      content_score: "content_score",
+      slot_score: "slot_score",
+      wte: "wte_score",
+      rvr: "rvr_score",
+      ovr: "ovr_score",
+      arr: "arr_score",
+      reach: "reach_score",
+    };
+    const trendKey = apiTrendMetric[S.trend];
+    const trendRows = apiTrend.filter(
+      (item) => trendKey && `AVG(${trendKey})` in item,
     );
+    const trendLabels =
+      trendRows.length > 0
+        ? trendRows.map((item) =>
+            new Date(Number(item.date)).toISOString().slice(5, 10),
+          )
+        : ks.map((k) => k.slice(5));
+    const vs =
+      trendRows.length > 0
+        ? trendRows.map((item) => apiMetric(item, trendKey))
+        : ks.map(
+            (k) =>
+              +(bw[k].reduce((a, x) => a + pk(x), 0) / bw[k].length).toFixed(1),
+          );
     if (tc) tc.destroy();
     const trendChartEl = document.getElementById(
       "trendChart",
@@ -2488,7 +2697,7 @@ onMounted(() => {
       tc = new Chart(trendChartEl, {
         type: "line",
         data: {
-          labels: ks.map((k) => k.slice(5)),
+          labels: trendLabels,
           datasets: [
             {
               data: vs,
@@ -2513,75 +2722,6 @@ onMounted(() => {
             y: {
               grid: { color: GRID() },
               ticks: { font: { size: 9 }, color: TICK() },
-            },
-          },
-        },
-      });
-    }
-
-    const pts: number[] = [];
-    const ref: number[] = [];
-    const dk = 1 - r.rawArr / 100;
-    for (let i = 0; i <= 20; i++) {
-      const t = i / 20;
-      pts.push(+(100 * Math.exp(-dk * t * 2.2)).toFixed(1));
-      ref.push(+(100 * Math.exp(-0.55 * t * 2.2)).toFixed(1));
-    }
-    if (pc2) pc2.destroy();
-    const dropChartEl = document.getElementById(
-      "dropChart",
-    ) as HTMLCanvasElement | null;
-    if (dropChartEl) {
-      pc2 = new Chart(dropChartEl, {
-        type: "line",
-        data: {
-          labels: pts.map((_, i) => Math.round((i / 20) * r.duration) + "′"),
-          datasets: [
-            {
-              label: S.prog,
-              data: pts,
-              borderColor: "#6366f1",
-              backgroundColor: "rgba(99,102,241,.08)",
-              fill: true,
-              tension: 0.3,
-              pointRadius: 0,
-              borderWidth: 2,
-            },
-            {
-              label: "TB khung giờ",
-              data: ref,
-              borderColor: "#94a3b8",
-              borderDash: [5, 4],
-              fill: false,
-              tension: 0.3,
-              pointRadius: 0,
-              borderWidth: 1.5,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: "bottom",
-              labels: { boxWidth: 9, font: { size: 10 }, color: TICK() },
-            },
-          },
-          scales: {
-            x: {
-              grid: { display: false },
-              ticks: { font: { size: 9 }, color: TICK(), maxTicksLimit: 8 },
-            },
-            y: {
-              grid: { color: GRID() },
-              min: 0,
-              max: 105,
-              ticks: {
-                font: { size: 9 },
-                color: TICK(),
-                callback: (v: number) => v + "%",
-              },
             },
           },
         },
@@ -2708,6 +2848,62 @@ onMounted(() => {
   }
 
   function rDet(): void {
+    if (chartLoading("Chart1112")) {
+      setLoading("dt-body", true);
+      const dtCount = document.getElementById("dt-count");
+      if (dtCount) dtCount.textContent = "";
+      return;
+    }
+    const apiRows = getChartRows(dashboard?.Chart1112);
+    if (apiRows.length > 0) {
+      const query = S.dtS.toLowerCase();
+      const filteredRows = apiRows
+        .filter(
+          (row: any) =>
+            !query ||
+            String(row.program_name || "")
+              .toLowerCase()
+              .includes(query),
+        )
+        .slice(0, 400);
+      const dtCount = document.getElementById("dt-count");
+      if (dtCount) dtCount.textContent = filteredRows.length + " lượt phát";
+
+      const formatApiDate = (value: unknown): string => {
+        const date = new Date(Number(value));
+        if (Number.isNaN(date.getTime())) return "—";
+        return date.toISOString().slice(0, 10);
+      };
+      const apiValue = (row: any, key: string): string =>
+        Number(row[key] ?? 0).toFixed(1);
+
+      const dtBody = document.getElementById("dt-body");
+      if (dtBody) {
+        dtBody.innerHTML = filteredRows
+          .map((row: any) => {
+            const contentScore = Number(row.content_score ?? 0);
+            const slotScore = Number(row.slot_score ?? 0);
+            const [, contentClass] = band(contentScore);
+            return `<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+  <td class="px-3 py-2 text-slate-500" style="padding-left:15px">${formatApiDate(row.date)}</td><td class="px-3 py-2 font-medium">${row.program_name || "—"}</td>
+  <td class="px-3 py-2 text-right grp-c border-l border-slate-100 dark:border-slate-800 font-extrabold ${contentClass}">${contentScore.toFixed(1)}</td>
+  <td class="px-2 py-2 text-right grp-c text-slate-500">${apiValue(row, "wte_score")}</td>
+  <td class="px-2 py-2 text-right grp-c text-slate-500">${apiValue(row, "rvr_score")}</td>
+  <td class="px-2 py-2 text-right grp-c text-slate-500">${apiValue(row, "ovr_score")}</td>
+  <td class="px-2 py-2 text-right grp-c text-slate-500">${apiValue(row, "arr_score")}</td>
+  <td class="px-2 py-2 text-right grp-c">${apiValue(row, "tsv_score")}</td>
+  <td class="px-3 py-2 text-right grp-s border-l border-slate-100 dark:border-slate-800 font-extrabold text-sky-600">${slotScore.toFixed(1)}</td>
+  <td class="px-2 py-2 text-right grp-s text-slate-500">${apiValue(row, "slot_rating_score")}</td>
+  <td class="px-2 py-2 text-right grp-s text-slate-500">${apiValue(row, "lead_in_score")}</td>
+  <td class="px-2 py-2 text-right grp-s text-slate-500">${apiValue(row, "lead_out_score")}</td>
+  <td class="px-3 py-2 border-l border-slate-100 dark:border-slate-800 text-slate-500">${row.channel_name_tvd || "—"}</td>
+  <td class="px-3 py-2 text-slate-500">${row.time_group || "—"}</td></tr>`;
+          })
+          .join("");
+      }
+      return;
+    }
+
     let lg = fLogs();
     if (S.dtS) {
       lg = lg.filter((l) => l.name.toLowerCase().includes(S.dtS.toLowerCase()));
@@ -2927,12 +3123,21 @@ onMounted(() => {
       () => dashboard?.Chart1113?.value,
       () => dashboard?.Chart1121?.value,
       () => dashboard?.Chart1114?.value,
+      () => dashboard?.Chart1115?.value,
+      () => dashboard?.Chart1116?.value,
+      () => dashboard?.Chart1117?.value,
+      () => dashboard?.Chart1118?.value,
+      () => dashboard?.Chart1120?.value,
+      () => dashboard?.Chart1112?.value,
     ],
     () => {
       if (S.tab === "t1") {
         rDistChart();
         rRisk();
+        rOv();
       }
+      if (S.tab === "t2") rProg();
+      if (S.tab === "t4") rDet();
     },
     { deep: true },
   );
