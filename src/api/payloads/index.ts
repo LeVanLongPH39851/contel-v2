@@ -7,3 +7,4 @@ export { chart1117 } from "./chart1117";
 export { chart1118 } from "./chart1118";
 export { chart1120 } from "./chart1120";
 export { chart1121 } from "./chart1121";
+export { chart1125 } from "./chart1125";

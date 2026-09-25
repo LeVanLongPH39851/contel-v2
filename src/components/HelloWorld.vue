@@ -37,7 +37,7 @@
         </button>
         <button
           data-days="30"
-          class="px-3 py-1.5 rounded-md text-[11px] font-semibold bg-white dark:bg-slate-700 shadow-sm"
+          class="px-3 py-1.5 rounded-md text-[11px] font-semibold text-slate-500"
         >
           30 ngày
         </button>
@@ -54,19 +54,24 @@
           Tùy chọn
         </button>
       </div>
-      <div id="custom-range" class="hidden items-center gap-1.5">
+      <div id="custom-range" class="hidden items-center gap-1.5 flex-wrap">
         <input
           type="date"
           id="d-start"
-          class="text-[11px] px-2 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+          class="text-[11px] px-2 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 transition focus:outline-none focus:border-brand-500"
         />
         <span class="text-slate-400">–</span>
         <input
           type="date"
           id="d-end"
-          class="text-[11px] px-2 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+          class="text-[11px] px-2 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 transition focus:outline-none focus:border-brand-500"
         />
+        <span
+          id="date-range-err"
+          class="text-[10px] text-rose-500 font-medium"
+        ></span>
       </div>
+
       <button
         id="theme-btn"
         class="w-8 h-8 grid place-items-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 text-[14px]"
@@ -76,7 +81,6 @@
     </div>
   </div>
 
-  <!-- ══ TABS ══ -->
   <div
     class="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800 px-5 flex items-center gap-1 overflow-x-auto"
   >
@@ -115,26 +119,74 @@
   <!-- ══ FILTERS ══ -->
   <div
     id="fbar"
-    class="px-5 py-2.5 bg-slate-100/70 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800 flex items-center gap-x-5 gap-y-2 flex-wrap text-[11px]"
+    class="px-5 py-2 bg-slate-100/70 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800 flex items-center gap-x-4 gap-y-2 flex-wrap text-[11px]"
   >
+    <!-- Kênh — dropdown -->
     <div class="flex items-center gap-1.5">
       <span class="text-[10px] uppercase tracking-wide text-slate-500 font-bold"
         >Kênh</span
       >
-      <div class="flex gap-1" id="f-channel"></div>
+      <div class="fdd" id="fdd-channel">
+        <button class="fdd-trigger" id="fdd-channel-btn">
+          <span id="fdd-channel-label">Tất cả</span>
+          <svg class="fdd-arrow" viewBox="0 0 12 12" fill="none">
+            <path
+              d="M2 4l4 4 4-4"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+        <div class="fdd-panel" id="fdd-channel-panel">
+          <label class="fdd-item fdd-all" id="fdd-channel-all">
+            <span class="fdd-check"></span>
+            <span>Tất cả</span>
+          </label>
+          <div class="fdd-divider"></div>
+          <div id="fdd-channel-opts"></div>
+        </div>
+      </div>
     </div>
+
+    <!-- Khung giờ — dropdown -->
     <div class="flex items-center gap-1.5">
       <span class="text-[10px] uppercase tracking-wide text-slate-500 font-bold"
         >Khung giờ</span
       >
-      <div class="flex gap-1 flex-wrap" id="f-time"></div>
+      <div class="fdd" id="fdd-time">
+        <button class="fdd-trigger" id="fdd-time-btn">
+          <span id="fdd-time-label">Tất cả</span>
+          <svg class="fdd-arrow" viewBox="0 0 12 12" fill="none">
+            <path
+              d="M2 4l4 4 4-4"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+        <div class="fdd-panel" id="fdd-time-panel">
+          <label class="fdd-item fdd-all" id="fdd-time-all">
+            <span class="fdd-check"></span>
+            <span>Tất cả</span>
+          </label>
+          <div class="fdd-divider"></div>
+          <div id="fdd-time-opts"></div>
+        </div>
+      </div>
     </div>
+
+    <!-- Loại ngày — pills -->
     <div class="flex items-center gap-1.5">
       <span class="text-[10px] uppercase tracking-wide text-slate-500 font-bold"
         >Loại ngày</span
       >
       <div class="flex gap-1" id="f-weekday"></div>
     </div>
+
     <span class="ml-auto text-[10px] text-slate-400" id="range-label"></span>
   </div>
 
@@ -170,7 +222,7 @@
               id="risk-count"
             ></span>
             <span class="ml-auto text-[10px] text-slate-400"
-              >Điểm Sức khỏe dưới 35</span
+              >Điểm Sức khỏe dưới 45</span
             >
           </div>
           <div
@@ -191,7 +243,7 @@
               id="under-count"
             ></span>
             <span class="ml-auto text-[10px] text-slate-400"
-              >Cơ hội xếp lịch</span
+              >Điểm sức khỏe trên 60 nhưng Reach dưới 50</span
             >
           </div>
           <div
@@ -217,96 +269,116 @@
         </div>
         <div class="overflow-x-auto max-h-[560px] overflow-y-auto">
           <table class="w-full text-[11px]">
-            <thead class="text-[10px] uppercase tracking-wide text-slate-500">
+            <thead
+              class="text-[10px] uppercase tracking-wide text-slate-500 sticky top-0"
+            >
               <tr>
                 <th
                   rowspan="2"
                   class="text-left px-3 py-2 font-bold bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700"
                   style="padding-left: 15px"
+                  onclick="sortBy('name', 'overview')"
                 >
                   Chương trình
                 </th>
                 <th
                   rowspan="2"
                   class="text-left px-3 py-2 font-bold bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('channel', 'overview')"
                 >
                   Kênh
                 </th>
                 <th
                   rowspan="2"
                   class="text-left px-3 py-2 font-bold bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('timeGroup', 'overview')"
                 >
                   Giờ phát
                 </th>
                 <th
                   rowspan="2"
                   class="text-left px-3 py-2 font-bold bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('weekday', 'overview')"
                 >
                   Loại ngày
                 </th>
                 <th
                   colspan="6"
-                  class="text-center px-3 py-1.5 font-bold grp-c border-l border-b border-slate-200 dark:border-slate-700 text-brand-600"
+                  class="text-center px-3 py-1.5 font-bold bg-slate-50 dark:bg-slate-800 border-l border-b border-slate-200 dark:border-slate-700 text-brand-600"
                 >
                   Giá trị Nội dung · Content Value
                 </th>
                 <th
-                  colspan="4"
-                  class="text-center px-3 py-1.5 font-bold grp-s border-l border-b border-slate-200 dark:border-slate-700 text-sky-600"
+                  colspan="5"
+                  class="text-center px-3 py-1.5 font-bold bg-slate-50 dark:bg-slate-800 border-l border-b border-slate-200 dark:border-slate-700 text-sky-600"
                 >
                   Vị trí Phát sóng · Slot Baseline
                 </th>
               </tr>
               <tr>
                 <th
-                  class="text-right px-3 py-2 font-bold grp-c border-l border-b border-slate-200 dark:border-slate-700 cursor-pointer"
-                  onclick="sortBy('content_score')"
+                  class="text-right px-3 py-2 font-bold bg-slate-50 dark:bg-slate-800 border-l border-b border-slate-200 dark:border-slate-700 cursor-pointer"
+                  onclick="sortBy('content_score', 'overview')"
                 >
-                  Điểm Sức khỏe ↕
+                  Điểm Sức khỏe
                 </th>
                 <th
-                  class="text-right px-2 py-2 font-normal grp-c border-b border-slate-200 dark:border-slate-700"
+                  class="text-right px-2 py-2 font-normal bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('wte', 'overview')"
                 >
                   HSX
                 </th>
                 <th
-                  class="text-right px-2 py-2 font-normal grp-c border-b border-slate-200 dark:border-slate-700"
+                  class="text-right px-2 py-2 font-normal bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('rvr', 'overview')"
                 >
                   TLQL
                 </th>
                 <th
-                  class="text-right px-2 py-2 font-normal grp-c border-b border-slate-200 dark:border-slate-700"
+                  class="text-right px-2 py-2 font-normal bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('ovr', 'overview')"
                 >
                   CĐ
                 </th>
                 <th
-                  class="text-right px-2 py-2 font-normal grp-c border-b border-slate-200 dark:border-slate-700"
+                  class="text-right px-2 py-2 font-normal bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('arr', 'overview')"
                 >
                   GC
                 </th>
                 <th
-                  class="text-right px-2 py-2 font-normal grp-c border-b border-slate-200 dark:border-slate-700"
+                  class="text-right px-2 py-2 font-normal bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('tsv_score', 'overview')"
                 >
-                  Ave.Reach
+                  XL
                 </th>
                 <th
-                  class="text-right px-3 py-2 font-bold grp-s border-l border-b border-slate-200 dark:border-slate-700 cursor-pointer"
-                  onclick="sortBy('slot_score')"
+                  class="text-right px-3 py-2 font-bold bg-slate-50 dark:bg-slate-800 border-l border-b border-slate-200 dark:border-slate-700 cursor-pointer"
+                  onclick="sortBy('slot_score', 'overview')"
                 >
-                  Điểm Vị trí ↕
+                  Điểm Vị trí
                 </th>
                 <th
-                  class="text-right px-2 py-2 font-normal grp-s border-b border-slate-200 dark:border-slate-700"
+                  class="text-right px-2 py-2 font-normal bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('rating', 'overview')"
                 >
                   Rating nền
                 </th>
                 <th
-                  class="text-right px-2 py-2 font-normal grp-s border-b border-slate-200 dark:border-slate-700"
+                  class="text-right px-2 py-2 font-normal bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('reach', 'overview')"
+                >
+                  Reach nền
+                </th>
+                <th
+                  class="text-right px-2 py-2 font-normal bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('leadin', 'overview')"
                 >
                   KT
                 </th>
                 <th
-                  class="text-right px-2 py-2 font-normal grp-s border-b border-slate-200 dark:border-slate-700"
+                  class="text-right px-2 py-2 font-normal bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('leadout', 'overview')"
                 >
                   CT
                 </th>
@@ -446,7 +518,7 @@
 
     <!-- ══════ TAB 3 ══════ -->
     <section id="t3" class="tab-content space-y-4">
-      <div
+      <!-- <div
         class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 flex items-center gap-3 flex-wrap"
       >
         <span
@@ -474,64 +546,72 @@
           >Chi tiết theo block giờ thực tế trên lịch phát, phục vụ việc sắp xếp
           khung sóng</span
         >
-      </div>
+      </div> -->
 
       <div
         class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden"
       >
         <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-800">
           <h2 class="font-bold text-[13px]">Bản đồ khung sóng</h2>
-          <p class="text-[10px] text-slate-500 mt-0.5">
+          <!-- <p class="text-[10px] text-slate-500 mt-0.5">
             Từng block giờ với chương trình đang chiếm và mức nền của block
-          </p>
+          </p> -->
         </div>
         <div class="overflow-x-auto max-h-[520px] overflow-y-auto">
           <table class="w-full text-[11px]">
             <thead
-              class="bg-slate-50 dark:bg-slate-800 text-[10px] uppercase tracking-wide text-slate-500"
+              class="bg-slate-50 dark:bg-slate-800 text-[10px] uppercase tracking-wide text-slate-500 sticky top-0"
             >
               <tr>
                 <th
                   class="text-left px-3 py-2 font-bold border-b border-slate-200 dark:border-slate-700"
                   style="padding-left: 15px"
+                  onclick="sortBy('block', 'slot')"
                 >
                   Block giờ
                 </th>
                 <th
                   class="text-left px-3 py-2 font-bold border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('channel', 'slot')"
                 >
-                  Chương trình đang chiếm
+                  Kênh / loại ngày
                 </th>
                 <th
                   class="text-right px-3 py-2 font-bold border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('block_score', 'slot')"
                 >
-                  Điểm Sức khỏe
+                  Điểm Khung giờ
                 </th>
                 <th
                   class="text-right px-3 py-2 font-bold border-b border-slate-200 dark:border-slate-700 grp-s"
+                  onclick="sortBy('block_rating', 'slot')"
                 >
                   Rating nền
                 </th>
                 <th
                   class="text-right px-3 py-2 font-bold border-b border-slate-200 dark:border-slate-700 grp-s"
+                  onclick="sortBy('reach', 'slot')"
                 >
                   Reach nền
                 </th>
                 <th
                   class="text-right px-3 py-2 font-bold border-b border-slate-200 dark:border-slate-700 grp-s"
+                  onclick="sortBy('block_bor_score', 'slot')"
                 >
-                  Kế thừa nền
+                  Chủ động
                 </th>
                 <th
                   class="text-right px-3 py-2 font-bold border-b border-slate-200 dark:border-slate-700 grp-s"
+                  onclick="sortBy('block_brr_score', 'slot')"
                 >
-                  Chuyển tiếp nền
+                  Khán giả quay lại
                 </th>
-                <th
+                <!-- <th
                   class="text-right px-3 py-2 font-bold border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('difference', 'slot')"
                 >
                   Chênh lệch
-                </th>
+                </th> -->
               </tr>
             </thead>
             <tbody
@@ -549,7 +629,7 @@
         </div>
       </div>
 
-      <div
+      <!-- <div
         class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden"
       >
         <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-800">
@@ -603,7 +683,7 @@
           Tỷ lệ khán giả ở lại khi chuyển sang block giờ kế tiếp
         </p>
         <div id="chain" class="space-y-2"></div>
-      </div>
+      </div> -->
     </section>
 
     <!-- ══════ TAB 4 ══════ -->
@@ -625,77 +705,97 @@
         <div class="overflow-x-auto max-h-[640px] overflow-y-auto">
           <table class="w-full text-[11px]">
             <thead
-              class="bg-slate-50 dark:bg-slate-800 text-[10px] uppercase tracking-wide text-slate-500"
+              class="bg-slate-50 dark:bg-slate-800 text-[10px] uppercase tracking-wide text-slate-500 sticky top-0"
             >
               <tr>
                 <th
                   class="text-left px-3 py-2 font-bold border-b border-slate-200 dark:border-slate-700"
                   style="padding-left: 15px"
+                  onclick="sortBy('date', 'detail')"
                 >
                   Ngày
                 </th>
                 <th
                   class="text-left px-3 py-2 font-bold border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('program_name', 'detail')"
                 >
                   Chương trình
                 </th>
                 <th
                   class="text-right px-3 py-2 font-bold grp-c border-l border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('content_score', 'detail')"
                 >
                   Điểm Sức khỏe
                 </th>
                 <th
                   class="text-right px-2 py-2 font-normal grp-c border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('wte_score', 'detail')"
                 >
                   HSX
                 </th>
                 <th
                   class="text-right px-2 py-2 font-normal grp-c border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('rvr_score', 'detail')"
                 >
                   TLQL
                 </th>
                 <th
                   class="text-right px-2 py-2 font-normal grp-c border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('ovr_score', 'detail')"
                 >
                   CĐ
                 </th>
                 <th
                   class="text-right px-2 py-2 font-normal grp-c border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('arr_score', 'detail')"
                 >
                   GC
                 </th>
                 <th
                   class="text-right px-2 py-2 font-normal grp-c border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('tsv_score', 'detail')"
                 >
-                  Ave.Reach
+                  XL
                 </th>
                 <th
                   class="text-right px-3 py-2 font-bold grp-s border-l border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('slot_score', 'detail')"
                 >
                   Điểm Vị trí
                 </th>
                 <th
                   class="text-right px-2 py-2 font-normal grp-s border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('slot_rating_score', 'detail')"
                 >
                   Rating nền
                 </th>
                 <th
                   class="text-right px-2 py-2 font-normal grp-s border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('slot_reach_score', 'detail')"
+                >
+                  Reach nền
+                </th>
+                <th
+                  class="text-right px-2 py-2 font-normal grp-s border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('lead_in_score', 'detail')"
                 >
                   KT
                 </th>
                 <th
                   class="text-right px-2 py-2 font-normal grp-s border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('lead_out_score', 'detail')"
                 >
                   CT
                 </th>
                 <th
                   class="text-left px-3 py-2 font-bold border-l border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('channel_name_tvd', 'detail')"
                 >
                   Kênh
                 </th>
                 <th
                   class="text-left px-3 py-2 font-bold border-b border-slate-200 dark:border-slate-700"
+                  onclick="sortBy('time_group', 'detail')"
                 >
                   Giờ phát
                 </th>
@@ -1267,8 +1367,11 @@
 <script setup lang="ts">
 import { onMounted, watch } from "vue";
 import { useDashboardData } from "../composables/useDashboardData";
+import { useDashboardFilters } from "../composables/useDashboardFilters";
 
 const dashboard = useDashboardData() as any;
+
+const { appliedFilters, setAppliedFilters } = useDashboardFilters();
 
 declare const Chart: any;
 
@@ -1372,14 +1475,17 @@ interface AggregatedItem {
 
 interface State {
   tab: string;
-  days: number | "custom";
+  days: number | "custom" | null;
   start: string | null;
   end: string | null;
-  channel: string;
-  time: string;
-  weekday: string;
+  channel: string[];
+  time: string[];
+  weekday: string[];
   sort: keyof AggregatedItem;
   asc: boolean;
+  sortTable: "overview" | "slot" | "detail";
+  sortKey: string;
+  sortAsc: boolean;
   prog: string;
   trend: string;
   blkW: number;
@@ -1388,14 +1494,43 @@ interface State {
 }
 
 onMounted(() => {
-  const CHANNELS: string[] = ["VTV1", "VTV2", "VTV3", "VTV6"];
-  const TIME_GROUPS: string[] = [
-    "Sáng (05–11h)",
-    "Trưa (11–13h)",
-    "Chiều (13–17h)",
-    "Tối (17–23h)",
-    "Đêm (23–05h)",
+  const CHANNELS: string[] = [
+    "VTV1",
+    "VTV2",
+    "VTV3",
+    "VTV4",
+    "VTV5",
+    "VTV5 Tây Nguyên",
+    "VTV5 Tây Nam Bộ",
+    "VIETNAM TODAY",
   ];
+  const TIME_GROUPS: string[] = [
+    "Sáng",
+    "Trưa",
+    "Chiều",
+    "Tối 1",
+    "Tối 2",
+    "Tối 3",
+    "Đêm",
+  ];
+  const TIME_GROUP_LABELS: Record<string, string> = {
+    Sáng: "5h – 11h",
+    Trưa: "11h – 14h",
+    Chiều: "4h – 17h",
+    "Tối 1": "17h – 19h",
+    "Tối 2": "19h – 21h",
+    "Tối 3": "21h – 23h",
+    Đêm: "23h – 5h",
+  };
+  const timeGroupMarkup = (value: string): string => {
+    const label = TIME_GROUP_LABELS[value];
+    return label
+      ? `${value} <span class="text-[9px] text-slate-400 dark:text-slate-500 font-normal">${label}</span>`
+      : value;
+  };
+  const timeGroupMarkup2 = (value: string): string =>
+    TIME_GROUP_LABELS[value] || "";
+
   const daypart = (h: number): string =>
     h >= 5 && h < 11
       ? TIME_GROUPS[0]
@@ -1403,10 +1538,12 @@ onMounted(() => {
         ? TIME_GROUPS[1]
         : h >= 13 && h < 17
           ? TIME_GROUPS[2]
-          : h >= 17 && h < 23
+          : h >= 17 && h < 21
             ? TIME_GROUPS[3]
-            : TIME_GROUPS[4];
-  const WEEKDAYS: string[] = ["Trong tuần", "Cuối tuần"];
+            : h >= 21 && h < 23
+              ? TIME_GROUPS[4]
+              : TIME_GROUPS[5];
+  const WEEKDAYS: string[] = ["Ngày thường", "Cuối tuần"];
   const W_CONTENT = { wte: 0.3, rvr: 0.25, ovr: 0.25, arr: 0.2 } as const;
   const W_SLOT = { rating: 0.5, leadin: 0.3, leadout: 0.2 } as const;
   const hh = (h: number): string => ("0" + h).slice(-2) + ":00";
@@ -1908,14 +2045,17 @@ onMounted(() => {
 
   const S: State = {
     tab: "t1",
-    days: 30,
+    days: null,
     start: null,
     end: null,
-    channel: "Tất cả",
-    time: "Tất cả",
-    weekday: "Tất cả",
+    channel: [],
+    time: [],
+    weekday: [],
     sort: "content_score",
     asc: false,
+    sortTable: "overview",
+    sortKey: "content_score",
+    sortAsc: false,
     prog: CATALOG[0].n,
     trend: "content_score",
     blkW: 1,
@@ -1924,22 +2064,22 @@ onMounted(() => {
   };
 
   function fLogs(): LogEntry[] {
-    let min: Date;
+    let min: Date | null = null;
     let max: Date = new Date();
     if (S.days === "custom" && S.start && S.end) {
       min = new Date(S.start);
       max = new Date(S.end);
-    } else {
+    } else if (typeof S.days === "number") {
       min = new Date();
       min.setDate(min.getDate() - Number(S.days));
     }
     return LOGS.filter(
       (l) =>
-        l.dateObj >= min &&
+        (!min || l.dateObj >= min) &&
         l.dateObj <= max &&
-        (S.channel === "Tất cả" || l.channel === S.channel) &&
-        (S.time === "Tất cả" || l.timeGroup === S.time) &&
-        (S.weekday === "Tất cả" || l.weekday === S.weekday),
+        (S.channel.length === 0 || S.channel.includes(l.channel)) &&
+        (S.time.length === 0 || S.time.includes(l.timeGroup)) &&
+        (S.weekday.length === 0 || S.weekday.includes(l.weekday)),
     );
   }
 
@@ -1999,6 +2139,121 @@ onMounted(() => {
   const HEX = (v: number): string =>
     v >= 65 ? "#10b981" : v >= 35 ? "#64748b" : v >= 20 ? "#f59e0b" : "#f43f5e";
 
+  /** ±1 helper: format Date → "yyyy-mm-dd" */
+  function toYMD(d: Date): string {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+
+  function syncAppliedFilters(): void {
+    // Compute the effective date range
+    let startDate: string | undefined;
+    let endDate: string | undefined;
+
+    const today = new Date();
+    if (S.days === "custom") {
+      startDate = S.start ?? undefined;
+      endDate = S.end ?? undefined;
+    } else if (typeof S.days === "number") {
+      const from = new Date(today);
+      from.setDate(from.getDate() - Number(S.days));
+      startDate = toYMD(from);
+      endDate = toYMD(today);
+    }
+
+    setAppliedFilters({
+      channel: [...S.channel],
+      time: [...S.time],
+      weekday: [...S.weekday],
+      startDate,
+      endDate,
+    });
+  }
+
+  // ── Dropdown multi-select (channel & time) ──────────────────────────────
+  function dropdown(
+    id: string,
+    items: string[],
+    key: "channel" | "time",
+  ): void {
+    const panel = document.getElementById(`fdd-${id}-panel`);
+    const optsEl = document.getElementById(`fdd-${id}-opts`);
+    const labelEl = document.getElementById(`fdd-${id}-label`);
+    const allEl = document.getElementById(
+      `fdd-${id}-all`,
+    ) as HTMLElement | null;
+    const triggerBtn = document.getElementById(`fdd-${id}-btn`);
+    const wrapper = document.getElementById(`fdd-${id}`);
+    if (!panel || !optsEl || !labelEl || !allEl || !triggerBtn || !wrapper)
+      return;
+
+    const arr = S[key] as string[];
+
+    // Update "Tất cả" row check state
+    const allChecked = arr.length === 0 || arr.length === items.length;
+    const checkSpan = allEl.querySelector(".fdd-check") as HTMLElement;
+    checkSpan.className = "fdd-check" + (allChecked ? " checked" : "");
+
+    // Update label
+    if (arr.length === 0 || arr.length === items.length) {
+      labelEl.textContent = "Tất cả";
+    } else if (arr.length === 1) {
+      if (key === "time") labelEl.innerHTML = timeGroupMarkup(arr[0]);
+      else labelEl.textContent = arr[0];
+    } else {
+      labelEl.textContent = arr.length + " đã chọn";
+    }
+
+    // Render option rows
+    optsEl.innerHTML = "";
+    items.forEach((v) => {
+      const label = document.createElement("label");
+      label.className = "fdd-item";
+      const isActive = arr.includes(v);
+      label.innerHTML = `<span class="fdd-check${isActive ? " checked" : ""}"></span><span>${key === "time" ? timeGroupMarkup(v) : v}</span>`;
+      label.onclick = (e) => {
+        e.stopPropagation();
+        const idx = arr.indexOf(v);
+        if (idx === -1) arr.push(v);
+        else arr.splice(idx, 1);
+        dropdown(id, items, key);
+        syncAppliedFilters();
+        render();
+      };
+      optsEl.appendChild(label);
+    });
+
+    // "Tất cả" click handler (re-attach each render)
+    allEl.onclick = (e) => {
+      e.stopPropagation();
+      S[key] = arr.length === items.length ? [] : [...items];
+      dropdown(id, items, key);
+      syncAppliedFilters();
+      render();
+    };
+
+    // Toggle panel open/close
+    triggerBtn.onclick = (e) => {
+      e.stopPropagation();
+      const isOpen = wrapper.classList.contains("open");
+      // Close all other dropdowns
+      document
+        .querySelectorAll(".fdd.open")
+        .forEach((el) => el.classList.remove("open"));
+      if (!isOpen) wrapper.classList.add("open");
+    };
+  }
+
+  // Close dropdowns on outside click
+  document.addEventListener("click", () => {
+    document
+      .querySelectorAll(".fdd.open")
+      .forEach((el) => el.classList.remove("open"));
+  });
+
+  // ── Pills multi-select (weekday) ────────────────────────────────────────
   function pills(
     el: string,
     items: string[],
@@ -2007,17 +2262,44 @@ onMounted(() => {
     const b = document.getElementById(el);
     if (!b) return;
     b.innerHTML = "";
-    ["Tất cả", ...items].forEach((v) => {
+    // "Tất cả" button — active khi array rỗng (tất cả option đang chọn)
+    const allBtn = document.createElement("button");
+    allBtn.textContent = "Tất cả";
+    const allActive = S[key].length === items.length;
+    allBtn.className =
+      "px-2.5 py-1 rounded-md text-[11px] font-medium transition " +
+      (allActive
+        ? "bg-brand-600 text-white"
+        : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700");
+    allBtn.onclick = () => {
+      if (S[key].length === items.length) {
+        S[key] = [];
+      } else {
+        S[key] = [...items];
+      }
+      pills(el, items, key);
+      syncAppliedFilters();
+      render();
+    };
+    b.appendChild(allBtn);
+
+    // Các option riêng lẻ — click để toggle vào/ra khỏi array
+    items.forEach((v) => {
       const x = document.createElement("button");
       x.textContent = v;
+      const isActive = S[key].includes(v);
       x.className =
         "px-2.5 py-1 rounded-md text-[11px] font-medium transition " +
-        (S[key] === v
+        (isActive
           ? "bg-brand-600 text-white"
           : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700");
       x.onclick = () => {
-        S[key] = v;
+        const a = S[key] as string[];
+        const idx = a.indexOf(v);
+        if (idx === -1) a.push(v);
+        else a.splice(idx, 1);
         pills(el, items, key);
+        syncAppliedFilters();
         render();
       };
       b.appendChild(x);
@@ -2060,6 +2342,7 @@ onMounted(() => {
       if (dc) dc.destroy();
       return;
     }
+    clearCanvasEmpty("distChart");
     const bins = ["<20", "20–34", "35–49", "50–64", "65–79", "≥80"];
     const binKeys = ["<20", "20-34", "35-49", "50-64", "65-79", ">=80"];
 
@@ -2119,13 +2402,9 @@ onMounted(() => {
       c = binKeys.map((k) => contentCounts[k]);
       s = binKeys.map((k) => slotCounts[k]);
     } else {
-      const bi = (v: number): number =>
-        v < 20 ? 0 : v < 35 ? 1 : v < 50 ? 2 : v < 65 ? 3 : v < 80 ? 4 : 5;
-      const ok = okList || agg(fLogs()).filter((r) => r.n >= 4);
-      ok.forEach((r) => {
-        c[bi(r.content_score)]++;
-        s[bi(r.slot_score)]++;
-      });
+      if (dc) dc.destroy();
+      setCanvasEmpty("distChart");
+      return;
     }
 
     if (dc) dc.destroy();
@@ -2201,6 +2480,37 @@ onMounted(() => {
     element.innerHTML =
       '<div class="px-4 py-6 text-[11px] text-slate-400 text-center animate-pulse">Đang tải dữ liệu...</div>';
     return loading;
+  };
+
+  const setEmpty = (elementId: string): void => {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.innerHTML =
+        '<div class="px-4 py-6 text-[11px] text-slate-400 text-center">Không có dữ liệu</div>';
+    }
+  };
+
+  const setCanvasEmpty = (canvasId: string): void => {
+    const canvas = document.getElementById(canvasId);
+    const parent = canvas?.parentElement;
+    if (!parent) return;
+    canvas?.classList.add("hidden");
+    let overlay = parent.querySelector<HTMLElement>("[data-empty-overlay]");
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.dataset.emptyOverlay = "true";
+      overlay.className =
+        "absolute inset-0 grid place-items-center text-[11px] text-slate-400";
+      overlay.textContent = "Không có dữ liệu";
+      parent.classList.add("relative");
+      parent.appendChild(overlay);
+    }
+  };
+
+  const clearCanvasEmpty = (canvasId: string): void => {
+    const canvas = document.getElementById(canvasId);
+    canvas?.classList.remove("hidden");
+    canvas?.parentElement?.querySelector("[data-empty-overlay]")?.remove();
   };
 
   const setCanvasLoading = (canvasId: string, loading: boolean): boolean => {
@@ -2283,33 +2593,101 @@ onMounted(() => {
           .join("");
       }
     } else {
-      const ok = fallbackOk || agg(fLogs()).filter((r) => r.n >= 4);
-      const risk = ok
-        .filter((r) => r.content_score < 35)
-        .sort((a, b) => a.content_score - b.content_score);
-      if (riskCount) riskCount.textContent = String(risk.length);
-      if (riskList) {
-        riskList.innerHTML =
-          risk
-            .map((r) => {
-              const [lb, cl] = band(r.content_score);
-              return `<div class="px-4 py-2.5 flex items-center gap-3">
-   <div class="min-w-0 flex-1"><div class="text-[11px] font-semibold truncate">${r.name}</div>
-    <div class="text-[10px] text-slate-400 truncate">${r.channel} · ${hh(r.hour)} · ${r.genre}</div></div>
-   <div class="text-right shrink-0"><div class="text-[15px] font-extrabold leading-none ${cl}">${r.content_score}</div>
-    <div class="text-[9px] ${cl} mt-0.5">${lb}</div></div></div>`;
-            })
-            .join("") ||
-          '<div class="px-4 py-6 text-[11px] text-slate-400 text-center">Không có chương trình nào dưới ngưỡng</div>';
-      }
+      if (riskCount) riskCount.textContent = "";
+      setEmpty("risk-list");
     }
   }
 
+  const API_SORT_FIELDS: Record<string, Record<string, string>> = {
+    overview: {
+      name: "program_name",
+      channel: "channel_name_tvd",
+      timeGroup: "time_group",
+      weekday: "week_day",
+      content_score: "AVG(content_score)",
+      wte: "AVG(wte_score)",
+      rvr: "AVG(rvr_score)",
+      ovr: "AVG(ovr_score)",
+      arr: "AVG(arr_score)",
+      tsv_score: "AVG(tsv_score)",
+      slot_score: "AVG(slot_score)",
+      rating: "AVG(slot_rating_score)",
+      reach: "AVG(slot_reach_score)",
+      leadin: "AVG(lead_in_score)",
+      leadout: "AVG(lead_out_score)",
+    },
+    slot: {
+      block: "block",
+      channel: "channel_name_tvd",
+      block_score: "AVG(block_score)",
+      block_rating: "AVG(block_rating)",
+      reach: "AVG(total_unique_viewers)",
+      block_bor_score: "AVG(block_bor_score)",
+      block_brr_score: "AVG(block_brr_score)",
+    },
+    detail: {
+      date: "date",
+      program_name: "program_name",
+      content_score: "content_score",
+      wte_score: "wte_score",
+      rvr_score: "rvr_score",
+      ovr_score: "ovr_score",
+      arr_score: "arr_score",
+      tsv_score: "tsv_score",
+      slot_score: "slot_score",
+      slot_rating_score: "slot_rating_score",
+      slot_reach_score: "slot_reach_score",
+      lead_in_score: "lead_in_score",
+      lead_out_score: "lead_out_score",
+      channel_name_tvd: "channel_name_tvd",
+      time_group: "time_group",
+    },
+  };
+
+  function sortApiRows(
+    rows: any[],
+    table: "overview" | "slot" | "detail",
+  ): any[] {
+    if (S.sortTable !== table) return rows;
+    const field = API_SORT_FIELDS[table][S.sortKey];
+    if (!field) return rows;
+    return [...rows].sort((a, b) => {
+      const left = a[field];
+      const right = b[field];
+      const leftNumber = Number(left);
+      const rightNumber = Number(right);
+      const bothNumbers =
+        left !== null &&
+        right !== null &&
+        left !== undefined &&
+        right !== undefined &&
+        Number.isFinite(leftNumber) &&
+        Number.isFinite(rightNumber);
+      const comparison = bothNumbers
+        ? leftNumber - rightNumber
+        : String(left ?? "").localeCompare(String(right ?? ""), "vi");
+      return S.sortAsc ? comparison : -comparison;
+    });
+  }
+
   function rOv(): void {
-    if (chartLoading("Chart1115") || chartLoading("Chart1120")) {
-      setLoading("under-list", true);
-      setLoading("ov-body", true);
-      return;
+    const underLoading = chartLoading("Chart1115");
+    const overviewLoading = chartLoading("Chart1120");
+    if (underLoading) setLoading("under-list", true);
+    const apiUnder = getChartRows(dashboard?.Chart1115);
+    const overviewQuery = S.ovS.trim().toLowerCase();
+    const apiOverview = sortApiRows(
+      getChartRows(dashboard?.Chart1120).filter((row: any) => {
+        if (!overviewQuery) return true;
+        return apiProgramName(row).toLowerCase().includes(overviewQuery);
+      }),
+      "overview",
+    );
+    if (overviewLoading) setLoading("ov-body", true);
+    if (!overviewLoading && apiOverview.length === 0) {
+      const ovCount = document.getElementById("ov-count");
+      if (ovCount) ovCount.textContent = "0 chương trình";
+      setEmpty("ov-body");
     }
     let rows = agg(fLogs()).filter(
       (r) => !S.ovS || r.name.toLowerCase().includes(S.ovS.toLowerCase()),
@@ -2322,17 +2700,20 @@ onMounted(() => {
       if (typeof valA === "number" && typeof valB === "number") {
         return S.asc ? valA - valB : valB - valA;
       }
-      return 0;
+      const comparison = String(valA ?? "").localeCompare(
+        String(valB ?? ""),
+        "vi",
+      );
+      return S.asc ? comparison : -comparison;
     });
     few.sort((a, b) => b.n - a.n);
     rows = [...ok, ...few];
     const ovCount = document.getElementById("ov-count");
-    if (ovCount) ovCount.textContent = rows.length + " chương trình";
+    if (ovCount && !overviewLoading) {
+      ovCount.textContent = apiOverview.length + " chương trình";
+    }
 
     rRisk(ok);
-
-    const apiUnder = getChartRows(dashboard?.Chart1115);
-    const apiOverview = getChartRows(dashboard?.Chart1120);
 
     const rm: Record<string, number[]> = {};
     ok.forEach((r) => {
@@ -2348,28 +2729,21 @@ onMounted(() => {
       })
       .sort((a, b) => b.content_score - a.content_score);
     const underCount = document.getElementById("under-count");
-    if (underCount) {
-      underCount.textContent = String(
-        apiUnder.length > 0 ? apiUnder.length : under.length,
-      );
+    if (underCount && !underLoading) {
+      underCount.textContent = String(apiUnder.length);
     }
 
     const underList = document.getElementById("under-list");
-    if (underList) {
-      underList.innerHTML =
-        (apiUnder.length > 0 ? apiUnder : under)
+    if (underList && !underLoading) {
+      if (apiUnder.length === 0) {
+        setEmpty("under-list");
+      } else {
+        underList.innerHTML = apiUnder
           .map((r: any) => {
-            const isApi = apiUnder.length > 0;
-            const name = isApi ? apiProgramName(r) : r.name;
-            const subtitle = isApi
-              ? apiSubtitle(r)
-              : `${r.channel} · ${hh(r.hour)} · Chủ động ${r.rawOvr}%`;
-            const contentScore = isApi
-              ? apiNumber(r, "AVG(content_score)")
-              : r.content_score;
-            const reachScore = isApi
-              ? apiNumber(r, "AVG(reach_score)")
-              : r.reach;
+            const name = apiProgramName(r);
+            const subtitle = apiSubtitle(r);
+            const contentScore = apiNumber(r, "AVG(content_score)");
+            const reachScore = apiNumber(r, "AVG(reach_score)");
             return `
   <div class="px-4 py-2.5 flex items-center gap-3">
    <div class="min-w-0 flex-1"><div class="text-[11px] font-semibold truncate">${name}</div>
@@ -2377,12 +2751,12 @@ onMounted(() => {
    <div class="text-right shrink-0"><div class="text-[15px] font-extrabold leading-none text-emerald-500">${contentScore.toFixed(1)}</div>
     <div class="text-[9px] text-amber-500 mt-0.5">Reach ${reachScore.toFixed(1)}</div></div></div>`;
           })
-          .join("") ||
-        '<div class="px-4 py-6 text-[11px] text-slate-400 text-center">Không có chương trình nào trong nhóm này</div>';
+          .join("");
+      }
     }
 
     const ovBody = document.getElementById("ov-body");
-    if (ovBody) {
+    if (ovBody && !overviewLoading && apiOverview.length > 0) {
       ovBody.innerHTML = (apiOverview.length > 0 ? apiOverview : rows)
         .map((r) => {
           if (apiOverview.length > 0) {
@@ -2395,7 +2769,7 @@ onMounted(() => {
    <td class="px-3 py-2" style="padding-left:15px"><div class="font-medium">${apiProgramName(r)}</div>
     <div class="text-[10px] text-slate-400">1 lượt phát</div></td>
    <td class="px-3 py-2 text-slate-500">${r.channel_name_tvd || "—"}</td>
-   <td class="px-3 py-2 whitespace-nowrap"><div class="font-medium text-slate-600 dark:text-slate-300">${r.time_group || "—"}</div></td>
+  <td class="px-3 py-2 whitespace-nowrap"><div class="font-medium text-slate-600 dark:text-slate-300">${r.time_group}</div><div class="text-[10px] text-slate-400">${timeGroupMarkup2(r.time_group)}</div></td>
    <td class="px-3 py-2 text-slate-500 text-[10px]">${r.week_day || "—"}</td>
    <td class="px-3 py-2 text-right grp-c border-l border-slate-100 dark:border-slate-800">
     <div class="font-extrabold text-[14px] ${cl}">${contentScore.toFixed(1)}</div><div class="text-[9px] ${cl}">${lb}</div></td>
@@ -2403,9 +2777,10 @@ onMounted(() => {
    <td class="px-2 py-2 text-right grp-c text-slate-500">${metric("AVG(rvr_score)")}</td>
    <td class="px-2 py-2 text-right grp-c text-slate-500">${metric("AVG(ovr_score)")}</td>
    <td class="px-2 py-2 text-right grp-c text-slate-500">${metric("AVG(arr_score)")}</td>
-   <td class="px-2 py-2 text-right grp-c font-medium">—</td>
+   <td class="px-2 py-2 text-right grp-c text-slate-500">${metric("AVG(tsv_score)")}</td>
    <td class="px-3 py-2 text-right grp-s border-l border-slate-100 dark:border-slate-800"><span class="font-extrabold text-[14px] text-sky-600">${slotScore.toFixed(1)}</span></td>
    <td class="px-2 py-2 text-right grp-s text-slate-500">${metric("AVG(slot_rating_score)")}</td>
+   <td class="px-2 py-2 text-right grp-s text-slate-500">${metric("AVG(slot_reach_score)")}</td>
    <td class="px-2 py-2 text-right grp-s text-slate-500">${metric("AVG(lead_in_score)")}</td>
    <td class="px-2 py-2 text-right grp-s text-slate-500">${metric("AVG(lead_out_score)")}</td></tr>`;
           }
@@ -2415,8 +2790,8 @@ onMounted(() => {
    <td class="px-3 py-2" style="padding-left:15px"><div class="font-medium">${r.name}</div>
     <div class="text-[10px] text-slate-400">${r.n} lượt phát · ${r.duration}′</div></td>
    <td class="px-3 py-2 text-slate-500">${r.channel}</td>
-   <td class="px-3 py-2 whitespace-nowrap"><div class="font-medium text-slate-600 dark:text-slate-300">${blockLabel(r.hour, 1)}</div>
-    <div class="text-[10px] text-slate-400">${r.timeGroup.split(" ")[0]}</div></td>
+  <td class="px-3 py-2 whitespace-nowrap"><div class="font-medium text-slate-600 dark:text-slate-300">${blockLabel(r.hour, 1)}</div>
+   <div class="text-[10px] text-slate-400">${timeGroupMarkup(r.timeGroup)}</div></td>
    <td class="px-3 py-2 text-slate-500 text-[10px]">${r.weekday}</td>
    <td class="px-3 py-2 text-right grp-c border-l border-slate-100 dark:border-slate-800">
     ${
@@ -2441,20 +2816,31 @@ onMounted(() => {
   }
 
   function rProg(): void {
+    const contentLoading = chartLoading("Chart1116");
+    const slotLoading = chartLoading("Chart1117");
+    const trendLoading = chartLoading("Chart1118");
+    const apiContentRows = getChartRows(dashboard?.Chart1116);
+    const apiSlotRows = getChartRows(dashboard?.Chart1117);
+    const apiTrendRows = getChartRows(dashboard?.Chart1118);
     if (
-      chartLoading("Chart1116") ||
-      chartLoading("Chart1117") ||
-      chartLoading("Chart1118")
+      !contentLoading &&
+      !slotLoading &&
+      !trendLoading &&
+      apiContentRows.length === 0 &&
+      apiSlotRows.length === 0 &&
+      apiTrendRows.length === 0
     ) {
-      setLoading("p-content-metrics", true);
-      setLoading("p-slot-metrics", true);
-      setLoading("p-verdict", true);
-      setCanvasLoading("trendChart", true);
       const contentScore = document.getElementById("p-content-score");
       const slotScore = document.getElementById("p-slot-score");
-      if (contentScore) contentScore.textContent = "...";
-      if (slotScore) slotScore.textContent = "...";
-      if (tc) tc.destroy();
+      const contentBadge = document.getElementById("p-content-badge");
+      if (contentScore) contentScore.textContent = "Không có dữ liệu";
+      if (slotScore) slotScore.textContent = "Không có dữ liệu";
+      if (contentBadge) contentBadge.innerHTML = "";
+      setEmpty("prog-meta");
+      setEmpty("p-content-metrics");
+      setEmpty("p-slot-metrics");
+      setEmpty("p-verdict");
+      setCanvasEmpty("trendChart");
       return;
     }
     const rows = agg(fLogs());
@@ -2727,9 +3113,96 @@ onMounted(() => {
         },
       });
     }
+
+    const contentScoreEl = document.getElementById("p-content-score");
+    const slotScoreEl = document.getElementById("p-slot-score");
+    const contentBadgeEl = document.getElementById("p-content-badge");
+    const programSelect = document.getElementById("prog-select");
+    if (apiContentRows.length === 0 || apiSlotRows.length === 0) {
+      if (programSelect) programSelect.innerHTML = "";
+      setEmpty("prog-meta");
+    }
+    if (contentLoading) {
+      setLoading("p-content-metrics", true);
+      if (contentScoreEl) contentScoreEl.textContent = "...";
+      if (contentBadgeEl) contentBadgeEl.innerHTML = "";
+    } else if (apiContentRows.length === 0) {
+      setEmpty("p-content-metrics");
+      if (contentScoreEl) contentScoreEl.textContent = "Không có dữ liệu";
+      if (contentBadgeEl) contentBadgeEl.innerHTML = "";
+    }
+    if (slotLoading) {
+      setLoading("p-slot-metrics", true);
+      setLoading("p-verdict", true);
+      if (slotScoreEl) slotScoreEl.textContent = "...";
+    } else if (apiSlotRows.length === 0) {
+      setEmpty("p-slot-metrics");
+      setEmpty("p-verdict");
+      if (slotScoreEl) slotScoreEl.textContent = "Không có dữ liệu";
+    }
+    if (trendLoading) {
+      setCanvasLoading("trendChart", true);
+      if (tc) tc.destroy();
+    } else if (apiTrendRows.length === 0) {
+      if (tc) tc.destroy();
+      setCanvasEmpty("trendChart");
+    } else {
+      setCanvasLoading("trendChart", false);
+      clearCanvasEmpty("trendChart");
+    }
   }
 
   function rSlot(): void {
+    const blockLoading = chartLoading("Chart1125");
+    if (blockLoading) {
+      setLoading("blk-body", true);
+      return;
+    }
+
+    const blockRows = sortApiRows(getChartRows(dashboard?.Chart1125), "slot");
+    const blkBody = document.getElementById("blk-body");
+    if (!blkBody) return;
+    if (blockRows.length === 0) {
+      setEmpty("blk-body");
+      return;
+    }
+
+    const blockNumber = (row: any, key: string): number =>
+      Number(row[key] ?? 0);
+    const formatNumber = (value: number): string =>
+      Number.isFinite(value) ? value.toLocaleString("vi-VN") : "—";
+    const formatScore = (value: number): string =>
+      Number.isFinite(value) ? value.toFixed(1) : "—";
+
+    blkBody.innerHTML = blockRows
+      .map((row: any) => {
+        const blockScore = blockNumber(row, "AVG(block_score)");
+        const [label, scoreClass] = band(blockScore);
+        const rating = blockNumber(row, "AVG(block_rating)");
+        const reach = blockNumber(row, "AVG(total_unique_viewers)");
+        const borScore = blockNumber(row, "AVG(block_bor_score)");
+        const brrScore = blockNumber(row, "AVG(block_brr_score)");
+        return `<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+  <td class="px-3 py-2.5 font-semibold whitespace-nowrap" style="padding-left:15px">${row.block || "—"}</td>
+  <td class="px-3 py-2.5"><div class="font-medium">${row.channel_name_tvd || "—"}</div><div class="text-[10px] text-slate-400">${row.week_day || "—"}</div></td>
+  <td class="px-3 py-2.5 text-right"><div class="font-extrabold ${scoreClass}">${formatScore(blockScore)}</div><div class="text-[9px] ${scoreClass}">${label}</div></td>
+  <td class="px-3 py-2.5 text-right grp-s font-medium">${formatNumber(rating)}</td>
+  <td class="px-3 py-2.5 text-right grp-s font-medium">${formatNumber(reach)}</td>
+  <td class="px-3 py-2.5 text-right grp-s">${formatScore(borScore)}</td>
+  <td class="px-3 py-2.5 text-right grp-s">${formatScore(brrScore)}</td>
+  </tr>`;
+      })
+      .join("");
+
+    setEmpty("slot-body");
+    setEmpty("chain");
+    return;
+
+    setEmpty("blk-body");
+    setEmpty("slot-body");
+    setEmpty("chain");
+    return;
+    /*
     const rows = agg(fLogs());
     const W = S.blkW;
     const g: Record<string, AggregatedItem[]> = {};
@@ -2845,6 +3318,7 @@ onMounted(() => {
           .join("") ||
         '<div class="text-[11px] text-slate-400">Không đủ dữ liệu cho bộ lọc hiện tại</div>';
     }
+    */
   }
 
   function rDet(): void {
@@ -2857,15 +3331,16 @@ onMounted(() => {
     const apiRows = getChartRows(dashboard?.Chart1112);
     if (apiRows.length > 0) {
       const query = S.dtS.toLowerCase();
-      const filteredRows = apiRows
-        .filter(
+      const filteredRows = sortApiRows(
+        apiRows.filter(
           (row: any) =>
             !query ||
             String(row.program_name || "")
               .toLowerCase()
               .includes(query),
-        )
-        .slice(0, 400);
+        ),
+        "detail",
+      ).slice(0, 400);
       const dtCount = document.getElementById("dt-count");
       if (dtCount) dtCount.textContent = filteredRows.length + " lượt phát";
 
@@ -2891,18 +3366,24 @@ onMounted(() => {
   <td class="px-2 py-2 text-right grp-c text-slate-500">${apiValue(row, "rvr_score")}</td>
   <td class="px-2 py-2 text-right grp-c text-slate-500">${apiValue(row, "ovr_score")}</td>
   <td class="px-2 py-2 text-right grp-c text-slate-500">${apiValue(row, "arr_score")}</td>
-  <td class="px-2 py-2 text-right grp-c">${apiValue(row, "tsv_score")}</td>
+  <td class="px-2 py-2 text-right grp-c text-slate-500">${apiValue(row, "tsv_score")}</td>
   <td class="px-3 py-2 text-right grp-s border-l border-slate-100 dark:border-slate-800 font-extrabold text-sky-600">${slotScore.toFixed(1)}</td>
   <td class="px-2 py-2 text-right grp-s text-slate-500">${apiValue(row, "slot_rating_score")}</td>
+  <td class="px-2 py-2 text-right grp-s text-slate-500">${apiValue(row, "slot_reach_score")}</td>
   <td class="px-2 py-2 text-right grp-s text-slate-500">${apiValue(row, "lead_in_score")}</td>
   <td class="px-2 py-2 text-right grp-s text-slate-500">${apiValue(row, "lead_out_score")}</td>
   <td class="px-3 py-2 border-l border-slate-100 dark:border-slate-800 text-slate-500">${row.channel_name_tvd || "—"}</td>
-  <td class="px-3 py-2 text-slate-500">${row.time_group || "—"}</td></tr>`;
+  <td class="px-3 py-2 text-slate-500">${row.time_group}<div class="text-[10px] text-slate-400">${timeGroupMarkup2(row.time_group)}</div></td></tr>`;
           })
           .join("");
       }
       return;
     }
+
+    setEmpty("dt-body");
+    const emptyCount = document.getElementById("dt-count");
+    if (emptyCount) emptyCount.textContent = "0 lượt phát";
+    return;
 
     let lg = fLogs();
     if (S.dtS) {
@@ -2938,12 +3419,12 @@ onMounted(() => {
   }
 
   function rLab(): void {
-    let min: Date;
+    let min: Date | null = null;
     let max: Date = new Date();
     if (S.days === "custom" && S.start && S.end) {
       min = new Date(S.start);
       max = new Date(S.end);
-    } else {
+    } else if (typeof S.days === "number") {
       min = new Date();
       min.setDate(min.getDate() - Number(S.days));
     }
@@ -2953,7 +3434,7 @@ onMounted(() => {
       ("0" + (d.getMonth() + 1)).slice(-2);
     const rangeLabel = document.getElementById("range-label");
     if (rangeLabel) {
-      rangeLabel.textContent = f(min) + " – " + f(max);
+      rangeLabel.textContent = min ? f(min) + " – " + f(max) : "";
     }
   }
 
@@ -2965,15 +3446,40 @@ onMounted(() => {
     if (S.tab === "t4") rDet();
   }
 
-  function sortBy(f: string): void {
-    const key = f as keyof AggregatedItem;
-    if (S.sort === key) {
-      S.asc = !S.asc;
-    } else {
+  function updateSortIndicators(): void {
+    document
+      .querySelectorAll<HTMLElement>('th[onclick^="sortBy"]')
+      .forEach((header) => {
+        const match = header
+          .getAttribute("onclick")
+          ?.match(/sortBy\('([^']+)', '([^']+)'\)/);
+        if (!match) return;
+        const [_, key, table] = match;
+        const label =
+          header.dataset.sortLabel ?? header.textContent?.trim() ?? "";
+        header.dataset.sortLabel = label.replace(/[↑↓↕]\s*$/, "").trim();
+        const active = S.sortTable === table && S.sortKey === key;
+        const arrow = active ? (S.sortAsc ? " ↑" : " ↓") : " ↕";
+        header.textContent = header.dataset.sortLabel + arrow;
+      });
+  }
+
+  function sortBy(
+    f: string,
+    table: "overview" | "slot" | "detail" = "overview",
+  ): void {
+    if (table === "overview") {
+      const key = f as keyof AggregatedItem;
+      S.asc = S.sort === key ? !S.asc : false;
       S.sort = key;
-      S.asc = false;
     }
-    rOv();
+    S.sortAsc = S.sortTable === table && S.sortKey === f ? !S.sortAsc : false;
+    S.sortTable = table;
+    S.sortKey = f;
+    if (table === "overview") rOv();
+    if (table === "slot") rSlot();
+    if (table === "detail") rDet();
+    updateSortIndicators();
   }
   (window as any).sortBy = sortBy;
 
@@ -3028,6 +3534,12 @@ onMounted(() => {
               ? "flex items-center gap-1.5"
               : "hidden items-center gap-1.5";
         }
+        // Reset custom range error when switching away from custom
+        if (S.days !== "custom") {
+          const errEl = document.getElementById("date-range-err");
+          if (errEl) errEl.textContent = "";
+        }
+        syncAppliedFilters();
         render();
       }),
   );
@@ -3050,18 +3562,56 @@ onMounted(() => {
   );
 
   const dStart = document.getElementById("d-start") as HTMLInputElement | null;
+  const dEnd = document.getElementById("d-end") as HTMLInputElement | null;
+
+  function validateDateRange(): boolean {
+    const errEl = document.getElementById("date-range-err");
+    const startEl = document.getElementById(
+      "d-start",
+    ) as HTMLInputElement | null;
+    const endEl = document.getElementById("d-end") as HTMLInputElement | null;
+    const start = S.start;
+    const end = S.end;
+
+    const setInvalid = (on: boolean) => {
+      const invalidCls = "!border-rose-400 dark:!border-rose-500";
+      [startEl, endEl].forEach((el) => {
+        if (!el) return;
+        if (on) {
+          el.classList.add(...invalidCls.split(" "));
+        } else {
+          el.classList.remove(...invalidCls.split(" "));
+        }
+      });
+    };
+
+    if (start && end && start > end) {
+      if (errEl) errEl.textContent = "Ngày bắt đầu phải ≤ ngày kết thúc";
+      setInvalid(true);
+      return false;
+    }
+    if (errEl) errEl.textContent = "";
+    setInvalid(false);
+    return true;
+  }
+
   if (dStart) {
     dStart.onchange = (e) => {
       S.start = (e.target as HTMLInputElement).value;
-      render();
+      if (validateDateRange()) {
+        syncAppliedFilters();
+        render();
+      }
     };
   }
 
-  const dEnd = document.getElementById("d-end") as HTMLInputElement | null;
   if (dEnd) {
     dEnd.onchange = (e) => {
       S.end = (e.target as HTMLInputElement).value;
-      render();
+      if (validateDateRange()) {
+        syncAppliedFilters();
+        render();
+      }
     };
   }
 
@@ -3113,30 +3663,34 @@ onMounted(() => {
     };
   }
 
-  pills("f-channel", CHANNELS, "channel");
-  pills("f-time", TIME_GROUPS, "time");
+  dropdown("channel", CHANNELS, "channel");
+  dropdown("time", TIME_GROUPS, "time");
   pills("f-weekday", WEEKDAYS, "weekday");
+  updateSortIndicators();
   render();
 
   watch(
     [
-      () => dashboard?.Chart1113?.value,
-      () => dashboard?.Chart1121?.value,
-      () => dashboard?.Chart1114?.value,
-      () => dashboard?.Chart1115?.value,
-      () => dashboard?.Chart1116?.value,
-      () => dashboard?.Chart1117?.value,
-      () => dashboard?.Chart1118?.value,
-      () => dashboard?.Chart1120?.value,
-      () => dashboard?.Chart1112?.value,
+      () => dashboard?.isLoading?.value?.Chart1113,
+      () => dashboard?.isLoading?.value?.Chart1121,
+      () => dashboard?.isLoading?.value?.Chart1114,
+      () => dashboard?.isLoading?.value?.Chart1115,
+      () => dashboard?.isLoading?.value?.Chart1116,
+      () => dashboard?.isLoading?.value?.Chart1117,
+      () => dashboard?.isLoading?.value?.Chart1118,
+      () => dashboard?.isLoading?.value?.Chart1120,
+      () => dashboard?.isLoading?.value?.Chart1112,
+      () => dashboard?.isLoading?.value?.Chart1125,
     ],
     () => {
+      console.log(appliedFilters.value);
       if (S.tab === "t1") {
         rDistChart();
         rRisk();
         rOv();
       }
       if (S.tab === "t2") rProg();
+      if (S.tab === "t3") rSlot();
       if (S.tab === "t4") rDet();
     },
     { deep: true },

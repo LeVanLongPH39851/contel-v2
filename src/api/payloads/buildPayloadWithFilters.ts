@@ -13,12 +13,12 @@ interface TimeRange {
 
 interface FilterState {
   days?: string[];
-  channels?: string[];
+  channel?: string[];
   channelMultiples?: string[];
   provinces?: string[];
   regionals?: string[];
   keyCities?: string[];
-  timebands?: string[];
+  time?: string[];
   firstLevels?: string[];
   programs?: string[];
   programMultiples?: string[];
@@ -30,11 +30,11 @@ interface FilterState {
   advertisers?: string[];
   campaigns?: string[];
   brands?: string[];
-  weeks?: string[];
+  weekday?: string[];
 
   dates?: string[];
-  startDate?: string[];
-  endDate?: string[];
+  startDate?: string;
+  endDate?: string;
 
   startHours?: TimeRange;
   startMinutes?: TimeRange;
@@ -65,7 +65,7 @@ const toTimeRangeString = (
   startDate?: string,
   endDate?: string,
 ): string | null => {
-  if (!startDate && !endDate) return null;
+  if (!startDate || !endDate) return null;
 
   const s = startDate ? `${startDate}T00:00:00` : null;
   const e = endDate ? `${endDate}T23:59:59` : null;
@@ -170,12 +170,12 @@ const appendAllFilters = (
         }),
     },
     {
-      key: "channels",
+      key: "channel",
       disabledKey: "channelFilters",
       build: () =>
         buildQueriesFilters({
           column: "channel_name_tvd",
-          values: filterState.channels,
+          values: filterState.channel,
         }),
     },
     {
@@ -215,12 +215,12 @@ const appendAllFilters = (
         }),
     },
     {
-      key: "timebands",
+      key: "time",
       disabledKey: "timebandFilters",
       build: () =>
         buildQueriesFilters({
-          column: "time_band",
-          values: filterState.timebands,
+          column: "time_group",
+          values: filterState.time,
         }),
     },
     {
@@ -323,12 +323,12 @@ const appendAllFilters = (
         }),
     },
     {
-      key: "weeks",
+      key: "weekday",
       disabledKey: "weekFilters",
       build: () =>
         buildQueriesFilters({
-          column: "start_of_week",
-          values: filterState.weeks?.map((week) => {
+          column: "week_day",
+          values: filterState.weekday?.map((week) => {
             const match = week.match(/\d{2}\/\d{2}\/\d{4}/);
 
             if (!match) return week;
@@ -388,8 +388,8 @@ export const buildPayloadWithFilters = (
 
   if (
     enabledFilters.includes("overwriteChannelFilters") &&
-    filterState?.channels &&
-    filterState.channels.length > 0
+    filterState?.channel &&
+    filterState.channel.length > 0
   ) {
     if (!enabledFilters.includes("oneDateFilters")) {
       next.payload.queries[0].filters = [
@@ -430,17 +430,10 @@ export const buildPayloadWithFilters = (
     }));
   }
 
-  let startDate: string | undefined;
-  let endDate: string | undefined;
-
-  if (!enabledFilters.includes("dateFilters")) {
-    startDate = endDate = filterState?.dates?.[0];
-  } else if (!enabledFilters.includes("dateMultipleFilters")) {
-    startDate = filterState?.startDate?.[0];
-    endDate = filterState?.endDate?.[0];
-  }
-
-  const timeRange = toTimeRangeString(startDate, endDate);
+  const timeRange = toTimeRangeString(
+    filterState?.startDate,
+    filterState?.endDate,
+  );
 
   if (timeRange) {
     next.payload.queries = (next.payload.queries || []).map((q) => ({

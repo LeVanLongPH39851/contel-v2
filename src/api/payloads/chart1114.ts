@@ -10,7 +10,7 @@ export const chart1114 = {
       adhoc_filters: [
         {
           clause: "WHERE",
-          comparator: "50",
+          comparator: "45",
           datasourceWarning: false,
           expressionType: "SIMPLE",
           filterOptionName: "filter_4hxczqbj1k9_9x2fcgxt2hc",
@@ -24,19 +24,23 @@ export const chart1114 = {
         {
           clause: "WHERE",
           comparator: "No filter",
+          datasourceWarning: false,
           expressionType: "SIMPLE",
+          filterOptionName: "filter_mcbxhyfrplb_yepb969144",
+          isExtra: true,
+          isNew: false,
           operator: "TEMPORAL_RANGE",
+          sqlExpression: null,
           subject: "date",
         },
       ],
       all_columns: [],
       allow_render_html: true,
-      annotation_layers: [],
       chart_id: 1114,
       color_pn: true,
       comparison_color_scheme: "Green",
       comparison_type: "values",
-      dashboards: [118],
+      dashboards: [74],
       datasource: "321__table",
       extra_filters: [],
       extra_form_data: {
@@ -134,10 +138,7 @@ export const chart1114 = {
         optionName: "metric_w1eizdy4gr_7v9fvh2mlfq",
         sqlExpression: null,
       },
-      url_params: {
-        native_filters_key:
-          "i1n-Sa6qDM6gfFWzlaDhzTj2XgDqWGqYO8skLct1pUvvu8tf6ZUGLs4b3O7q-LCx",
-      },
+      url_params: {},
       viz_type: "table",
     },
     queries: [
@@ -165,7 +166,7 @@ export const chart1114 = {
           {
             col: "content_score",
             op: "<",
-            val: "50",
+            val: "45",
           },
           {
             col: "date",
@@ -267,10 +268,7 @@ export const chart1114 = {
         },
         time_offsets: [],
         time_range: "2026-01-26T00:00:00 : 2026-01-31T00:00:00",
-        url_params: {
-          native_filters_key:
-            "i1n-Sa6qDM6gfFWzlaDhzTj2XgDqWGqYO8skLct1pUvvu8tf6ZUGLs4b3O7q-LCx",
-        },
+        url_params: {},
       },
     ],
     result_format: "json",

@@ -11,6 +11,7 @@ const HOOKS = [
   { hook: useCallApi.useChart1118, dataKey: "Chart1118" },
   { hook: useCallApi.useChart1120, dataKey: "Chart1120" },
   { hook: useCallApi.useChart1121, dataKey: "Chart1121" },
+  { hook: useCallApi.useChart1125, dataKey: "Chart1125" },
 ];
 
 export const useDashboardData = () => {

@@ -10,7 +10,11 @@ const postChart = async (
   disabledFilters: string[] = [],
 ) => {
   const finalPayload = appliedFilters
-    ? buildPayloadWithFilters(basePayload, appliedFilters, disabledFilters)
+    ? buildPayloadWithFilters(
+        basePayload,
+        appliedFilters?.value,
+        disabledFilters,
+      )
     : basePayload;
 
   try {
@@ -36,28 +40,31 @@ const DISABLED_FILTERS = [
 ];
 
 export const chart1112 = (appliedFilters: any) =>
-  postChart(payloads.chart1112, appliedFilters, DISABLED_FILTERS);
+  postChart(payloads.chart1112, appliedFilters);
 
 export const chart1113 = (appliedFilters: any) =>
-  postChart(payloads.chart1113, appliedFilters, DISABLED_FILTERS);
+  postChart(payloads.chart1113, appliedFilters);
 
 export const chart1114 = (appliedFilters: any) =>
-  postChart(payloads.chart1114, appliedFilters, DISABLED_FILTERS);
+  postChart(payloads.chart1114, appliedFilters);
 
 export const chart1115 = (appliedFilters: any) =>
-  postChart(payloads.chart1115, appliedFilters, DISABLED_FILTERS);
+  postChart(payloads.chart1115, appliedFilters);
 
 export const chart1116 = (appliedFilters: any) =>
-  postChart(payloads.chart1116, appliedFilters, DISABLED_FILTERS);
+  postChart(payloads.chart1116, appliedFilters);
 
 export const chart1117 = (appliedFilters: any) =>
-  postChart(payloads.chart1117, appliedFilters, DISABLED_FILTERS);
+  postChart(payloads.chart1117, appliedFilters);
 
 export const chart1118 = (appliedFilters: any) =>
-  postChart(payloads.chart1118, appliedFilters, DISABLED_FILTERS);
+  postChart(payloads.chart1118, appliedFilters);
 
 export const chart1120 = (appliedFilters: any) =>
-  postChart(payloads.chart1120, appliedFilters, DISABLED_FILTERS);
+  postChart(payloads.chart1120, appliedFilters);
 
 export const chart1121 = (appliedFilters: any) =>
-  postChart(payloads.chart1121, appliedFilters, DISABLED_FILTERS);
+  postChart(payloads.chart1121, appliedFilters);
+
+export const chart1125 = (appliedFilters: any) =>
+  postChart(payloads.chart1125, appliedFilters);
