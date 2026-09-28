@@ -7,4 +7,8 @@ export default defineConfig({
   server: {
     port: 4173,
   },
+  preview: {
+    host: "0.0.0.0",
+    allowedHosts: ["contel.neotam.vn"],
+  },
 });
