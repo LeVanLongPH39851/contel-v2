@@ -151,7 +151,7 @@
     </div>
 
     <!-- Khung giờ — dropdown -->
-    <div class="flex items-center gap-1.5">
+    <div id="time-filter" class="flex items-center gap-1.5">
       <span class="text-[10px] uppercase tracking-wide text-slate-500 font-bold"
         >Khung giờ</span
       >
@@ -415,7 +415,10 @@
           id="prog-select"
           class="text-[12px] px-3 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 min-w-[300px]"
         ></select>
-        <span id="prog-meta" class="text-[11px] text-slate-500"></span>
+        <div
+          id="prog-meta"
+          class="min-w-0 flex-1 text-[11px] text-slate-500 dark:text-slate-400"
+        ></div>
       </div>
 
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -484,10 +487,6 @@
               </div>
             </div>
             <div id="p-slot-metrics"></div>
-            <div
-              id="p-verdict"
-              class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] leading-relaxed text-slate-600 dark:text-slate-300"
-            ></div>
           </div>
         </div>
       </div>
@@ -508,7 +507,7 @@
               <option value="rvr">Tỷ lệ quay lại (RVR)</option>
               <option value="ovr">Khán giả chủ động (OVR)</option>
               <option value="arr">Giữ chân (ARR)</option>
-              <option value="reach">Độ phủ (Ave.Reach)</option>
+              <option value="reach">Timeshift (TSV)</option>
             </select>
           </div>
           <div class="h-[280px]"><canvas id="trendChart"></canvas></div>
@@ -2056,7 +2055,7 @@ onMounted(() => {
     sortTable: "overview",
     sortKey: "content_score",
     sortAsc: false,
-    prog: CATALOG[0].n,
+    prog: "THỜI SỰ 19H",
     trend: "content_score",
     blkW: 1,
     ovS: "",
@@ -2167,6 +2166,7 @@ onMounted(() => {
       channel: [...S.channel],
       time: [...S.time],
       weekday: [...S.weekday],
+      programs: S.prog ? [S.prog] : [],
       startDate,
       endDate,
     });
@@ -2494,6 +2494,7 @@ onMounted(() => {
     const canvas = document.getElementById(canvasId);
     const parent = canvas?.parentElement;
     if (!parent) return;
+    parent.querySelector("[data-loading-overlay]")?.remove();
     canvas?.classList.add("hidden");
     let overlay = parent.querySelector<HTMLElement>("[data-empty-overlay]");
     if (!overlay) {
@@ -2519,6 +2520,8 @@ onMounted(() => {
     if (!parent) return loading;
     let overlay = parent.querySelector<HTMLElement>("[data-loading-overlay]");
     if (loading) {
+      parent.querySelector("[data-empty-overlay]")?.remove();
+      canvas?.classList.remove("hidden");
       if (!overlay) {
         overlay = document.createElement("div");
         overlay.dataset.loadingOverlay = "true";
@@ -2534,8 +2537,10 @@ onMounted(() => {
     return loading;
   };
 
-  const apiNumber = (row: any, key: string): number =>
-    Number(row[key].toFixed(1) ?? 0);
+  const apiNumber = (row: any, key: string): number => {
+    const value = Number(row?.[key] ?? 0);
+    return Number.isFinite(value) ? Number(value.toFixed(1)) : 0;
+  };
 
   const apiProgramName = (row: any): string =>
     row.program_name || row.name || "Không rõ chương trình";
@@ -2622,8 +2627,8 @@ onMounted(() => {
       block_score: "AVG(block_score)",
       block_rating: "AVG(block_rating)",
       reach: "AVG(total_unique_viewers)",
-      block_bor_score: "AVG(block_bor_score)",
-      block_brr_score: "AVG(block_brr_score)",
+      block_bor_score: "AVG(block_organic_rate)",
+      block_brr_score: "AVG(block_return_rate)",
     },
     detail: {
       date: "date",
@@ -2819,16 +2824,53 @@ onMounted(() => {
     const contentLoading = chartLoading("Chart1116");
     const slotLoading = chartLoading("Chart1117");
     const trendLoading = chartLoading("Chart1118");
+    const metaLoading = chartLoading("Chart1126");
     const apiContentRows = getChartRows(dashboard?.Chart1116);
     const apiSlotRows = getChartRows(dashboard?.Chart1117);
     const apiTrendRows = getChartRows(dashboard?.Chart1118);
+    const apiMetaRows = getChartRows(dashboard?.Chart1126);
+    const programRows = getChartRows(dashboard?.FilterProgram);
+    const programNames = programRows
+      .map((row: any) => String(row.program_name || "").trim())
+      .filter(Boolean);
+    const preferredProgram = "THỜI SỰ 19H";
+    const orderedProgramNames = [
+      ...new Set(
+        programNames.filter((name: string) => name === preferredProgram),
+      ),
+      ...new Set(
+        programNames.filter((name: string) => name !== preferredProgram),
+      ),
+    ];
+    if (
+      orderedProgramNames.length > 0 &&
+      !orderedProgramNames.includes(S.prog)
+    ) {
+      S.prog = orderedProgramNames[0];
+    }
+    const sel = document.getElementById(
+      "prog-select",
+    ) as HTMLSelectElement | null;
+    if (sel && orderedProgramNames.length > 0) {
+      sel.replaceChildren(
+        ...orderedProgramNames.map((name: string) => {
+          const option = document.createElement("option");
+          option.value = name;
+          option.textContent = name;
+          option.selected = name === S.prog;
+          return option;
+        }),
+      );
+    }
     if (
       !contentLoading &&
       !slotLoading &&
       !trendLoading &&
+      !metaLoading &&
       apiContentRows.length === 0 &&
       apiSlotRows.length === 0 &&
-      apiTrendRows.length === 0
+      apiTrendRows.length === 0 &&
+      apiMetaRows.length === 0
     ) {
       const contentScore = document.getElementById("p-content-score");
       const slotScore = document.getElementById("p-slot-score");
@@ -2839,25 +2881,17 @@ onMounted(() => {
       setEmpty("prog-meta");
       setEmpty("p-content-metrics");
       setEmpty("p-slot-metrics");
-      setEmpty("p-verdict");
       setCanvasEmpty("trendChart");
       return;
     }
     const rows = agg(fLogs());
-    const sel = document.getElementById(
-      "prog-select",
-    ) as HTMLSelectElement | null;
-    if (sel) {
-      sel.innerHTML = rows
-        .map(
-          (r) =>
-            `<option ${r.name === S.prog ? "selected" : ""}>${r.name}</option>`,
-        )
-        .join("");
-    }
-    const r = rows.find((x) => x.name === S.prog) || rows[0];
-    if (!r) return;
-    S.prog = r.name;
+    const fallback =
+      rows.find((item) => item.name === S.prog) ||
+      rows.find(
+        (item) =>
+          item.name.toLocaleUpperCase("vi") === S.prog.toLocaleUpperCase("vi"),
+      ) ||
+      rows[0];
     const apiContent = getChartRows(dashboard?.Chart1116)[0];
     const apiSlot = getChartRows(dashboard?.Chart1117)[0];
     const apiTrend = getChartRows(dashboard?.Chart1118);
@@ -2865,14 +2899,47 @@ onMounted(() => {
     const hasApiSlot = !!apiSlot;
     const progMeta = document.getElementById("prog-meta");
     if (progMeta) {
-      progMeta.textContent = `${r.channel} · ${hh(r.hour)} · ${r.weekday} · ${r.genre} · ${r.duration} phút · ${r.n} lượt phát`;
+      if (metaLoading) {
+        progMeta.textContent = "Đang tải dữ liệu chương trình...";
+      } else if (apiMetaRows.length > 0) {
+        progMeta.replaceChildren(
+          ...apiMetaRows.map((row: any) => {
+            const line = document.createElement("div");
+            line.className =
+              "flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-slate-100 py-1 text-slate-600 last:border-0 dark:border-slate-800 dark:text-slate-300";
+            const broadcastCount = row["MAX(broadcast_count)"];
+            const values = [
+              row.channel_name_tvd,
+              row.time_group,
+              row.dur_group,
+              row.typo_first,
+              broadcastCount != null ? `${broadcastCount} lượt phát` : "",
+            ].filter(Boolean);
+
+            values.forEach((value: string, index: number) => {
+              if (index > 0) line.append("·");
+              const item = document.createElement("span");
+              item.textContent = String(value);
+              if (index === 0) {
+                item.className =
+                  "font-semibold text-slate-800 dark:text-slate-100";
+              }
+              line.append(item);
+            });
+
+            return line;
+          }),
+        );
+      } else {
+        progMeta.textContent = "Không có thông tin chương trình";
+      }
     }
     const contentScore = hasApiContent
       ? apiMetric(apiContent, "content_score")
-      : r.content_score;
+      : (fallback?.content_score ?? 0);
     const slotScore = hasApiSlot
       ? apiMetric(apiSlot, "slot_score")
-      : r.slot_score;
+      : (fallback?.slot_score ?? 0);
     const [lb, cl] = band(contentScore);
     const e = document.getElementById("p-content-score");
     if (e) {
@@ -2895,12 +2962,10 @@ onMounted(() => {
       sc: number,
       raw: number | string,
       u: string,
-      w: string,
       color: string,
     ): string => `<div class="mb-3">
   <div class="flex items-baseline gap-2 mb-1.5">
    <span class="text-[11px] font-medium">${n}</span><span class="text-[10px] text-slate-400">${a}</span>
-   ${w ? `<span class="text-[9px] text-slate-400">trọng số ${w}</span>` : ""}
    <span class="ml-auto text-[11px] text-slate-500">${raw}${u}</span>
    <span class="text-[13px] font-extrabold w-8 text-right" style="color:${color}">${sc}</span></div>
   <div class="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"><div class="h-full rounded-full" style="width:${sc}%;background:${color}"></div></div></div>`;
@@ -2909,19 +2974,22 @@ onMounted(() => {
     if (pContentMetrics) {
       const contentWte = hasApiContent
         ? apiMetric(apiContent, "wte_score")
-        : r.wte;
+        : (fallback?.wte ?? 0);
       const contentRvr = hasApiContent
         ? apiMetric(apiContent, "rvr_score")
-        : r.rvr;
+        : (fallback?.rvr ?? 0);
       const contentOvr = hasApiContent
         ? apiMetric(apiContent, "ovr_score")
-        : r.ovr;
+        : (fallback?.ovr ?? 0);
       const contentArr = hasApiContent
         ? apiMetric(apiContent, "arr_score")
-        : r.arr;
-      const contentReach = hasApiContent
+        : (fallback?.arr ?? 0);
+      const timeshiftViewers = hasApiContent
+        ? apiNumber(apiContent, "AVG(total_unique_viewers_tsv)")
+        : (fallback?.reach ?? 0);
+      const timeshiftScore = hasApiContent
         ? apiMetric(apiContent, "tsv_score")
-        : r.reach;
+        : (fallback?.reach ?? 0);
       pContentMetrics.innerHTML =
         bar(
           "Hiệu suất xem",
@@ -2929,9 +2997,8 @@ onMounted(() => {
           contentWte,
           hasApiContent
             ? apiMetric(apiContent, "watch_time_efficiency")
-            : r.rawWte,
+            : (fallback?.rawWte ?? 0),
           "%",
-          "0.30",
           HEX(contentWte),
         ) +
         bar(
@@ -2940,9 +3007,8 @@ onMounted(() => {
           contentRvr,
           hasApiContent
             ? apiMetric(apiContent, "return_viewer_rate")
-            : r.rawRvr,
+            : (fallback?.rawRvr ?? 0),
           "%",
-          "0.25",
           HEX(contentRvr),
         ) +
         bar(
@@ -2951,9 +3017,8 @@ onMounted(() => {
           contentOvr,
           hasApiContent
             ? apiMetric(apiContent, "organic_viewer_rate")
-            : r.rawOvr,
+            : (fallback?.rawOvr ?? 0),
           "%",
-          "0.25",
           HEX(contentOvr),
         ) +
         bar(
@@ -2962,73 +3027,82 @@ onMounted(() => {
           contentArr,
           hasApiContent
             ? apiMetric(apiContent, "retention_viewer_rate")
-            : r.rawArr,
+            : (fallback?.rawArr ?? 0),
           "%",
-          "0.20",
           HEX(contentArr),
         ) +
-        `<div class="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800 flex items-baseline gap-2">
-    <span class="text-[11px] font-medium">Độ phủ trung bình</span><span class="text-[10px] text-slate-400">Ave.Reach</span>
-    <span class="ml-auto text-[17px] font-extrabold">${hasApiContent ? contentReach.toFixed(1) : fk(r.reach)}</span></div>`;
+        bar(
+          "Xem Timeshift",
+          "TSV",
+          timeshiftScore,
+          timeshiftViewers,
+          "%",
+          HEX(timeshiftScore),
+        );
     }
+
+    const formatKMB = (num: number): string => {
+      if (num >= 1e9) return (num / 1e9).toFixed(1).replace(/\.0$/, "") + "B";
+      if (num >= 1e6) return (num / 1e6).toFixed(1).replace(/\.0$/, "") + "M";
+      if (num >= 1e3) return (num / 1e3).toFixed(1).replace(/\.0$/, "") + "k";
+      return Math.floor(num).toString();
+    };
 
     const pSlotMetrics = document.getElementById("p-slot-metrics");
     if (pSlotMetrics) {
       const slotRating = hasApiSlot
         ? apiMetric(apiSlot, "slot_rating_score")
-        : r.rating;
+        : (fallback?.rating ?? 0);
+      const slotReach = hasApiSlot
+        ? apiMetric(apiSlot, "slot_reach_score")
+        : (fallback?.reach ?? 0);
       const leadIn = hasApiSlot
         ? apiMetric(apiSlot, "lead_in_score")
-        : r.leadin;
+        : (fallback?.leadin ?? 0);
       const leadOut = hasApiSlot
         ? apiMetric(apiSlot, "lead_out_score")
-        : r.leadout;
+        : (fallback?.leadout ?? 0);
       pSlotMetrics.innerHTML =
         bar(
           "Khán giả nền khung giờ",
           "Slot Rating",
           slotRating,
-          hasApiSlot ? apiMetric(apiSlot, "slot_rating") : r.rawRt,
+          hasApiSlot
+            ? formatKMB(apiMetric(apiSlot, "slot_rating"))
+            : (fallback?.rawRt ?? 0),
           "",
-          "0.50",
+          "#0ea5e9",
+        ) +
+        bar(
+          "Độ phủ nền",
+          "Slot Reach",
+          slotReach,
+          hasApiSlot
+            ? formatKMB(apiMetric(apiSlot, "total_unique_viewers"))
+            : (fallback?.rawRt ?? 0),
+          "",
           "#0ea5e9",
         ) +
         bar(
           "Kế thừa khán giả",
           "Lead-in",
           leadIn,
-          hasApiSlot ? apiMetric(apiSlot, "lead_in_effect") : r.rawLi,
+          hasApiSlot
+            ? apiNumber(apiSlot, "AVG(lead_in_effect)*100")
+            : (fallback?.rawLi ?? 0),
           "%",
-          "0.30",
           "#0ea5e9",
         ) +
         bar(
           "Chuyển tiếp khán giả",
           "Lead-out",
           leadOut,
-          hasApiSlot ? apiMetric(apiSlot, "lead_out_effect") : r.rawLo,
+          hasApiSlot
+            ? apiNumber(apiSlot, "AVG(lead_out_effect)*100")
+            : (fallback?.rawLo ?? 0),
           "%",
-          "0.20",
           "#0ea5e9",
         );
-    }
-
-    const verdictLeadIn = hasApiSlot
-      ? apiMetric(apiSlot, "lead_in_score")
-      : r.leadin;
-    const verdictOvr = hasApiContent
-      ? apiMetric(apiContent, "ovr_score")
-      : r.ovr;
-    const hp = verdictLeadIn > 60;
-    const og = verdictOvr > 60;
-    const pVerdict = document.getElementById("p-verdict");
-    if (pVerdict) {
-      pVerdict.innerHTML =
-        og && !hp
-          ? `Khán giả chủ yếu <b>chủ động tìm đến</b> chương trình. Quy mô hiện tại phản ánh giới hạn của khung phát, không phản ánh sức hút nội dung.`
-          : hp && !og
-            ? `Chương trình đang <b>hưởng lợi rõ từ vị trí</b>: kế thừa nhiều khán giả từ chương trình liền trước trong khi mức chủ động thấp. Cần lưu ý nếu lịch phát thay đổi.`
-            : `Chương trình vừa nhận hỗ trợ từ khung giờ, vừa có mức chủ động ở mặt bằng chung. Điểm số đạt được nằm trên nền lợi thế của vị trí.`;
     }
 
     const lg = fLogs()
@@ -3056,7 +3130,7 @@ onMounted(() => {
       rvr: "rvr_score",
       ovr: "ovr_score",
       arr: "arr_score",
-      reach: "reach_score",
+      reach: "tsv_score",
     };
     const trendKey = apiTrendMetric[S.trend];
     const trendRows = apiTrend.filter(
@@ -3133,11 +3207,9 @@ onMounted(() => {
     }
     if (slotLoading) {
       setLoading("p-slot-metrics", true);
-      setLoading("p-verdict", true);
       if (slotScoreEl) slotScoreEl.textContent = "...";
     } else if (apiSlotRows.length === 0) {
       setEmpty("p-slot-metrics");
-      setEmpty("p-verdict");
       if (slotScoreEl) slotScoreEl.textContent = "Không có dữ liệu";
     }
     if (trendLoading) {
@@ -3173,23 +3245,37 @@ onMounted(() => {
       Number.isFinite(value) ? value.toLocaleString("vi-VN") : "—";
     const formatScore = (value: number): string =>
       Number.isFinite(value) ? value.toFixed(1) : "—";
+    const formatKMB = (num: number): string => {
+      if (num >= 1e9) return (num / 1e9).toFixed(1).replace(/\.0$/, "") + "B";
+      if (num >= 1e6) return (num / 1e6).toFixed(1).replace(/\.0$/, "") + "M";
+      if (num >= 1e3) return (num / 1e3).toFixed(1).replace(/\.0$/, "") + "k";
+      return Math.floor(num).toString();
+    };
 
     blkBody.innerHTML = blockRows
       .map((row: any) => {
         const blockScore = blockNumber(row, "AVG(block_score)");
         const [label, scoreClass] = band(blockScore);
+        const rating_scrore = blockNumber(row, "AVG(block_rating_score)");
+        const [labelRating, ratingScoreClass] = band(rating_scrore);
         const rating = blockNumber(row, "AVG(block_rating)");
+        const reach_score = blockNumber(row, "AVG(block_reach_score)");
+        const [labelReach, reachScoreClass] = band(reach_score);
         const reach = blockNumber(row, "AVG(total_unique_viewers)");
         const borScore = blockNumber(row, "AVG(block_bor_score)");
+        const [labelBor, borScoreClass] = band(borScore);
+        const bor = blockNumber(row, "AVG(block_organic_rate)");
         const brrScore = blockNumber(row, "AVG(block_brr_score)");
+        const [labelBrr, brrScoreClass] = band(brrScore);
+        const brr = blockNumber(row, "AVG(block_return_rate)");
         return `<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
   <td class="px-3 py-2.5 font-semibold whitespace-nowrap" style="padding-left:15px">${row.block || "—"}</td>
   <td class="px-3 py-2.5"><div class="font-medium">${row.channel_name_tvd || "—"}</div><div class="text-[10px] text-slate-400">${row.week_day || "—"}</div></td>
   <td class="px-3 py-2.5 text-right"><div class="font-extrabold ${scoreClass}">${formatScore(blockScore)}</div><div class="text-[9px] ${scoreClass}">${label}</div></td>
-  <td class="px-3 py-2.5 text-right grp-s font-medium">${formatNumber(rating)}</td>
-  <td class="px-3 py-2.5 text-right grp-s font-medium">${formatNumber(reach)}</td>
-  <td class="px-3 py-2.5 text-right grp-s">${formatScore(borScore)}</td>
-  <td class="px-3 py-2.5 text-right grp-s">${formatScore(brrScore)}</td>
+  <td class="px-3 py-2.5 text-right"><div class="font-extrabold ${ratingScoreClass}">${formatScore(rating_scrore)}</div><div class="text-[9px] ${ratingScoreClass}">${formatKMB(rating)}</div></td>
+  <td class="px-3 py-2.5 text-right"><div class="font-extrabold ${reachScoreClass}">${formatScore(reach_score)}</div><div class="text-[9px] ${reachScoreClass}">${formatKMB(reach)}</div></td>
+  <td class="px-3 py-2.5 text-right grp-s"><div class="font-extrabold ${borScoreClass}">${formatScore(borScore)}</div><div class="text-[9px] ${borScoreClass}">${formatScore(bor)}%</div></td>
+  <td class="px-3 py-2.5 text-right grp-s"><div class="font-extrabold ${brrScoreClass}">${formatScore(brrScore)}</div><div class="text-[9px] ${brrScoreClass}">${formatScore(brr)}%</div></td>
   </tr>`;
       })
       .join("");
@@ -3509,6 +3595,10 @@ onMounted(() => {
         if (fbar) {
           fbar.style.display = S.tab === "t5" ? "none" : "flex";
         }
+        const timeFilter = document.getElementById("time-filter");
+        if (timeFilter) {
+          timeFilter.style.display = S.tab === "t3" ? "none" : "flex";
+        }
         render();
       }),
   );
@@ -3641,6 +3731,7 @@ onMounted(() => {
   if (progSelect) {
     progSelect.onchange = (e) => {
       S.prog = (e.target as HTMLSelectElement).value;
+      syncAppliedFilters();
       rProg();
     };
   }
@@ -3681,6 +3772,8 @@ onMounted(() => {
       () => dashboard?.isLoading?.value?.Chart1120,
       () => dashboard?.isLoading?.value?.Chart1112,
       () => dashboard?.isLoading?.value?.Chart1125,
+      () => dashboard?.isLoading?.value?.Chart1126,
+      () => dashboard?.isLoading?.value?.FilterProgram,
     ],
     () => {
       console.log(appliedFilters.value);

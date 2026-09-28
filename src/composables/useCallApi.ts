@@ -20,3 +20,5 @@ export const useChart1118 = createChartComposable(getChart.chart1118);
 export const useChart1120 = createChartComposable(getChart.chart1120);
 export const useChart1121 = createChartComposable(getChart.chart1121);
 export const useChart1125 = createChartComposable(getChart.chart1125);
+export const useChart1126 = createChartComposable(getChart.chart1126);
+export const useFilterProgram = createChartComposable(getChart.filterProgram);

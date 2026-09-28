@@ -7,54 +7,17 @@ export const chart1116 = {
     },
     force: false,
     form_data: {
-      adhoc_filters: [
-        {
-          clause: "WHERE",
-          comparator: "No filter",
-          expressionType: "SIMPLE",
-          operator: "TEMPORAL_RANGE",
-          subject: "date",
-        },
-      ],
-      all_columns: [],
-      allow_render_html: true,
-      annotation_layers: [],
-      chart_id: 1116,
-      color_pn: true,
-      comparison_color_scheme: "Green",
-      comparison_type: "values",
-      conditional_formatting: [],
-      dashboards: [118],
       datasource: "321__table",
-      extra_filters: [],
-      extra_form_data: {
-        filters: [
-          {
-            col: "channel_name_tvd",
-            op: "IN",
-            val: ["VTV1"],
-          },
-          {
-            col: "program_name",
-            op: "IN",
-            val: ["THỜI SỰ 19H"],
-          },
-        ],
-        time_range: "2026-01-26T00:00:00 : 2026-01-31T00:00:00",
+      viz_type: "table",
+      slice_id: 1116,
+      url_params: {
+        native_filters_key:
+          "5HxWYPLvKq9NI6vSmPVeTk1Gt8L2AqpDlu6E97RY0Ou59PZfFYiZcy-GoRPFs4Kv",
       },
-      force: false,
+      query_mode: "aggregate",
       groupby: [],
-      label_colors: {},
-      map_label_colors: {
-        "AVG(arr_score)": "#666666",
-        "AVG(content_score)": "#FF7F44",
-        "AVG(lead_in_score)": "#1FA8C9",
-        "AVG(ovr_score)": "#FCC700",
-        "AVG(reach_score)": "#E04355",
-        "AVG(rvr_score)": "#454E7C",
-        "AVG(wte_score)": "#5AC189",
-        "COUNT(content_score_category)": "#1FA8C9",
-        "COUNT(slot_score_category)": "#1FA8C9",
+      temporal_columns_lookup: {
+        date: true,
       },
       metrics: [
         {
@@ -355,38 +318,67 @@ export const chart1116 = {
           sqlExpression: null,
         },
       ],
-      order_by_cols: [],
-      order_desc: true,
+      all_columns: [],
       percent_metrics: [],
-      query_mode: "aggregate",
-      result_format: "json",
-      result_type: "full",
+      adhoc_filters: [
+        {
+          clause: "WHERE",
+          comparator: "No filter",
+          expressionType: "SIMPLE",
+          operator: "TEMPORAL_RANGE",
+          subject: "date",
+        },
+      ],
+      order_by_cols: [],
       row_limit: 1000,
       server_page_length: 10,
-      shared_label_colors: [],
-      show_cell_bars: true,
-      slice_id: 1116,
+      order_desc: true,
       table_timestamp_format: "smart_date",
-      temporal_columns_lookup: {
-        date: true,
+      allow_render_html: true,
+      show_cell_bars: true,
+      color_pn: true,
+      comparison_color_scheme: "Green",
+      conditional_formatting: [],
+      comparison_type: "values",
+      annotation_layers: [],
+      dashboards: [118],
+      extra_form_data: {
+        filters: [
+          {
+            col: "channel_name_tvd",
+            op: "IN",
+            val: ["VTV1"],
+          },
+          {
+            col: "program_name",
+            op: "IN",
+            val: ["THỜI SỰ 19H"],
+          },
+        ],
+        time_range: "2026-01-26T00:00:00 : 2026-01-31T00:00:00",
       },
-      url_params: {
-        native_filters_key:
-          "lGISjkeISJV8fH_ImZpAoed6ow60Zz45i6fa8pUcHWB-Sxl8bstaGR-GDVPf2xnr",
+      chart_id: 1116,
+      label_colors: {},
+      shared_label_colors: [],
+      map_label_colors: {
+        "COUNT(slot_score_category)": "#1FA8C9",
+        "COUNT(content_score_category)": "#1FA8C9",
+        "AVG(lead_in_score)": "#1FA8C9",
+        "AVG(rvr_score)": "#454E7C",
+        "AVG(wte_score)": "#5AC189",
+        "AVG(content_score)": "#FF7F44",
+        "AVG(arr_score)": "#666666",
+        "AVG(reach_score)": "#E04355",
+        "AVG(ovr_score)": "#FCC700",
       },
-      viz_type: "table",
+      extra_filters: [],
+      force: false,
+      result_format: "json",
+      result_type: "full",
     },
     queries: [
       {
-        annotation_layers: [],
-        applied_time_extras: {},
-        columns: [],
-        custom_form_data: {},
-        custom_params: {},
-        extras: {
-          having: "",
-          where: "",
-        },
+        time_range: "2026-01-26T00:00:00 : 2026-01-31T00:00:00",
         filters: [
           {
             col: "channel_name_tvd",
@@ -404,6 +396,12 @@ export const chart1116 = {
             val: "No filter",
           },
         ],
+        extras: {
+          having: "",
+          where: "",
+        },
+        applied_time_extras: {},
+        columns: [],
         metrics: [
           {
             aggregate: "AVG",
@@ -703,7 +701,6 @@ export const chart1116 = {
             sqlExpression: null,
           },
         ],
-        order_desc: true,
         orderby: [
           [
             {
@@ -736,15 +733,18 @@ export const chart1116 = {
             false,
           ],
         ],
-        post_processing: [],
+        annotation_layers: [],
         row_limit: 1000,
         series_limit: 0,
-        time_offsets: [],
-        time_range: "2026-01-26T00:00:00 : 2026-01-31T00:00:00",
+        order_desc: true,
         url_params: {
           native_filters_key:
-            "lGISjkeISJV8fH_ImZpAoed6ow60Zz45i6fa8pUcHWB-Sxl8bstaGR-GDVPf2xnr",
+            "5HxWYPLvKq9NI6vSmPVeTk1Gt8L2AqpDlu6E97RY0Ou59PZfFYiZcy-GoRPFs4Kv",
         },
+        custom_params: {},
+        custom_form_data: {},
+        post_processing: [],
+        time_offsets: [],
       },
     ],
     result_format: "json",

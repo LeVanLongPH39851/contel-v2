@@ -8,3 +8,5 @@ export { chart1118 } from "./chart1118";
 export { chart1120 } from "./chart1120";
 export { chart1121 } from "./chart1121";
 export { chart1125 } from "./chart1125";
+export { chart1126 } from "./chart1126";
+export { filterProgram } from "./filterProgram";
