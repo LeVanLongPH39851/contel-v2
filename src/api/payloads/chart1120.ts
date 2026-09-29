@@ -7,51 +7,29 @@ export const chart1120 = {
     },
     force: false,
     form_data: {
-      adhoc_filters: [
-        {
-          clause: "WHERE",
-          comparator: "No filter",
-          expressionType: "SIMPLE",
-          operator: "TEMPORAL_RANGE",
-          subject: "date",
-        },
-      ],
-      all_columns: [],
-      allow_render_html: true,
-      chart_id: 1120,
-      color_pn: true,
-      comparison_color_scheme: "Green",
-      comparison_type: "values",
-      conditional_formatting: [],
-      dashboards: [74],
       datasource: "321__table",
-      extra_filters: [],
-      extra_form_data: {
-        filters: [
-          {
-            col: "channel_name_tvd",
-            op: "IN",
-            val: ["VTV1"],
-          },
-        ],
-        time_range: "2026-01-26T00:00:00 : 2026-01-31T00:00:00",
+      viz_type: "table",
+      slice_id: 1120,
+      url_params: {
+        native_filters_key:
+          "tmn28MCp4l0hbde4xXiAQcE2Ix-3vQTxRFeT1mhRL_M-5SCotyce2HrvqcLILJvf",
       },
-      force: false,
+      query_mode: "aggregate",
       groupby: ["program_name", "channel_name_tvd", "time_group", "week_day"],
-      include_search: true,
-      label_colors: {},
-      map_label_colors: {
-        "AVG(arr_score)": "#666666",
-        "AVG(content_score)": "#FF7F44",
-        "AVG(lead_in_score)": "#1FA8C9",
-        "AVG(ovr_score)": "#FCC700",
-        "AVG(reach_score)": "#E04355",
-        "AVG(rvr_score)": "#454E7C",
-        "AVG(wte_score)": "#5AC189",
-        "COUNT(content_score_category)": "#1FA8C9",
-        "COUNT(slot_score_category)": "#1FA8C9",
+      temporal_columns_lookup: {
+        date: true,
       },
       metrics: [
+        {
+          aggregate: null,
+          column: null,
+          datasourceWarning: false,
+          expressionType: "SQL",
+          hasCustomLabel: false,
+          label: "count (*)",
+          optionName: "metric_35sjruh9oj2_ugrwbdsdew",
+          sqlExpression: "count (*)",
+        },
         {
           aggregate: "AVG",
           column: {
@@ -350,21 +328,17 @@ export const chart1120 = {
           sqlExpression: null,
         },
       ],
-      order_by_cols: [],
-      order_desc: false,
+      all_columns: [],
       percent_metrics: [],
-      query_mode: "aggregate",
-      result_format: "json",
-      result_type: "full",
-      row_limit: 1000,
-      server_page_length: 10,
-      shared_label_colors: [],
-      show_cell_bars: true,
-      slice_id: 1120,
-      table_timestamp_format: "smart_date",
-      temporal_columns_lookup: {
-        date: true,
-      },
+      adhoc_filters: [
+        {
+          clause: "WHERE",
+          comparator: "No filter",
+          expressionType: "SIMPLE",
+          operator: "TEMPORAL_RANGE",
+          subject: "date",
+        },
+      ],
       timeseries_limit_metric: {
         aggregate: "MAX",
         column: {
@@ -393,20 +367,51 @@ export const chart1120 = {
         optionName: "metric_sg01vgonb3_0uobtl8xpbr",
         sqlExpression: null,
       },
-      url_params: {},
-      viz_type: "table",
+      order_by_cols: [],
+      row_limit: 1000,
+      server_page_length: 10,
+      order_desc: false,
+      table_timestamp_format: "smart_date",
+      include_search: true,
+      allow_render_html: true,
+      show_cell_bars: true,
+      color_pn: true,
+      comparison_color_scheme: "Green",
+      conditional_formatting: [],
+      comparison_type: "values",
+      dashboards: [74],
+      extra_form_data: {
+        filters: [
+          {
+            col: "channel_name_tvd",
+            op: "IN",
+            val: ["VTV1"],
+          },
+        ],
+        time_range: "2026-01-26T00:00:00 : 2026-01-31T00:00:00",
+      },
+      chart_id: 1120,
+      label_colors: {},
+      shared_label_colors: [],
+      map_label_colors: {
+        "COUNT(slot_score_category)": "#1FA8C9",
+        "COUNT(content_score_category)": "#1FA8C9",
+        "AVG(lead_in_score)": "#1FA8C9",
+        "AVG(rvr_score)": "#454E7C",
+        "AVG(wte_score)": "#5AC189",
+        "AVG(content_score)": "#FF7F44",
+        "AVG(arr_score)": "#666666",
+        "AVG(reach_score)": "#E04355",
+        "AVG(ovr_score)": "#FCC700",
+      },
+      extra_filters: [],
+      force: false,
+      result_format: "json",
+      result_type: "full",
     },
     queries: [
       {
-        annotation_layers: [],
-        applied_time_extras: {},
-        columns: ["program_name", "channel_name_tvd", "time_group", "week_day"],
-        custom_form_data: {},
-        custom_params: {},
-        extras: {
-          having: "",
-          where: "",
-        },
+        time_range: "2026-01-26T00:00:00 : 2026-01-31T00:00:00",
         filters: [
           {
             col: "channel_name_tvd",
@@ -419,7 +424,23 @@ export const chart1120 = {
             val: "No filter",
           },
         ],
+        extras: {
+          having: "",
+          where: "",
+        },
+        applied_time_extras: {},
+        columns: ["program_name", "channel_name_tvd", "time_group", "week_day"],
         metrics: [
+          {
+            aggregate: null,
+            column: null,
+            datasourceWarning: false,
+            expressionType: "SQL",
+            hasCustomLabel: false,
+            label: "count (*)",
+            optionName: "metric_35sjruh9oj2_ugrwbdsdew",
+            sqlExpression: "count (*)",
+          },
           {
             aggregate: "AVG",
             column: {
@@ -718,7 +739,6 @@ export const chart1120 = {
             sqlExpression: null,
           },
         ],
-        order_desc: false,
         orderby: [
           [
             {
@@ -752,7 +772,7 @@ export const chart1120 = {
             true,
           ],
         ],
-        post_processing: [],
+        annotation_layers: [],
         row_limit: 1000,
         series_limit: 0,
         series_limit_metric: {
@@ -783,9 +803,15 @@ export const chart1120 = {
           optionName: "metric_sg01vgonb3_0uobtl8xpbr",
           sqlExpression: null,
         },
+        order_desc: false,
+        url_params: {
+          native_filters_key:
+            "tmn28MCp4l0hbde4xXiAQcE2Ix-3vQTxRFeT1mhRL_M-5SCotyce2HrvqcLILJvf",
+        },
+        custom_params: {},
+        custom_form_data: {},
+        post_processing: [],
         time_offsets: [],
-        time_range: "2026-01-26T00:00:00 : 2026-01-31T00:00:00",
-        url_params: {},
       },
     ],
     result_format: "json",

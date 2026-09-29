@@ -2772,7 +2772,7 @@ onMounted(() => {
             const [lb, cl] = band(contentScore);
             return `<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
    <td class="px-3 py-2" style="padding-left:15px"><div class="font-medium">${apiProgramName(r)}</div>
-    <div class="text-[10px] text-slate-400">1 lượt phát</div></td>
+    <div class="text-[10px] text-slate-400">${r["count (*)"]} lượt phát</div></td>
    <td class="px-3 py-2 text-slate-500">${r.channel_name_tvd || "—"}</td>
   <td class="px-3 py-2 whitespace-nowrap"><div class="font-medium text-slate-600 dark:text-slate-300">${r.time_group}</div><div class="text-[10px] text-slate-400">${timeGroupMarkup2(r.time_group)}</div></td>
    <td class="px-3 py-2 text-slate-500 text-[10px]">${r.week_day || "—"}</td>
@@ -2907,11 +2907,12 @@ onMounted(() => {
             const line = document.createElement("div");
             line.className =
               "flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-slate-100 py-1 text-slate-600 last:border-0 dark:border-slate-800 dark:text-slate-300";
-            const broadcastCount = row["MAX(broadcast_count)"];
+            const broadcastCount = row["count(broadcast_count)"];
             const values = [
               row.channel_name_tvd,
               row.time_group,
               row.dur_group,
+              row.week_day,
               row.typo_first,
               broadcastCount != null ? `${broadcastCount} lượt phát` : "",
             ].filter(Boolean);
