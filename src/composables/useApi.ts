@@ -16,10 +16,16 @@ export function useApi(
   const loading = ref<boolean>(enabled);
   const error = ref<any>(null);
 
+  // Track the latest request to ignore stale responses (race condition fix)
+  let requestId = 0;
+
   const refetch = async () => {
     if (!enabled || shouldSkip) {
       return null;
     }
+
+    // Increment to mark this as the latest request
+    const currentId = ++requestId;
 
     loading.value = true;
     error.value = null;
@@ -27,14 +33,20 @@ export function useApi(
     try {
       const res = await apiFn(...params);
 
+      // Only apply result if this is still the latest request
+      if (currentId !== requestId) return null;
+
       data.value = res?.data;
 
       return res?.data;
     } catch (err) {
+      if (currentId !== requestId) return null;
       error.value = err;
       throw err;
     } finally {
-      loading.value = false;
+      if (currentId === requestId) {
+        loading.value = false;
+      }
     }
   };
 

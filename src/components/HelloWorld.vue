@@ -2559,6 +2559,7 @@ onMounted(() => {
       row.channel_name_tvd || row.channel,
       row.time_group,
       row.typo_first || row.genre,
+      row.week_day,
     ]
       .filter(Boolean)
       .join(" · ");
@@ -2594,6 +2595,7 @@ onMounted(() => {
               item.channel_name_tvd || item.channel,
               item.time_group || (item.hour != null ? hh(item.hour) : ""),
               item.typo_first || item.genre,
+              item.week_day,
             ]
               .filter(Boolean)
               .join(" · ");

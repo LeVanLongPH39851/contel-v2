@@ -9,17 +9,16 @@ export const chart1114 = {
     form_data: {
       adhoc_filters: [
         {
-          clause: "WHERE",
-          comparator: "45",
+          clause: "HAVING",
+          comparator: null,
           datasourceWarning: false,
-          expressionType: "SIMPLE",
+          expressionType: "SQL",
           filterOptionName: "filter_4hxczqbj1k9_9x2fcgxt2hc",
           isExtra: false,
           isNew: false,
-          operator: "<",
-          operatorId: "LESS_THAN",
-          sqlExpression: null,
-          subject: "content_score",
+          operator: null,
+          sqlExpression: "avg(content_score)< 45",
+          subject: null,
         },
         {
           clause: "WHERE",
@@ -54,7 +53,13 @@ export const chart1114 = {
         time_range: "2026-01-26T00:00:00 : 2026-01-31T00:00:00",
       },
       force: false,
-      groupby: ["program_name", "channel_name_tvd", "time_group", "typo_first"],
+      groupby: [
+        "program_name",
+        "channel_name_tvd",
+        "time_group",
+        "typo_first",
+        "week_day",
+      ],
       label_colors: {},
       map_label_colors: {
         "AVG(arr_score)": "#666666",
@@ -153,11 +158,12 @@ export const chart1114 = {
           "channel_name_tvd",
           "time_group",
           "typo_first",
+          "week_day",
         ],
         custom_form_data: {},
         custom_params: {},
         extras: {
-          having: "",
+          having: "(avg(content_score)< 45)",
           where: "",
         },
         filters: [
@@ -165,11 +171,6 @@ export const chart1114 = {
             col: "channel_name_tvd",
             op: "IN",
             val: ["VTV1"],
-          },
-          {
-            col: "content_score",
-            op: "<",
-            val: "45",
           },
           {
             col: "date",
