@@ -11,7 +11,7 @@
         class="font-extrabold text-[15px] tracking-[.14em] text-slate-900 dark:text-white"
         >NE<span class="text-cyan-400">O</span>TAM</span
       > -->
-      <figure class="w-24">
+      <figure class="w-28">
         <img :src="neotamLogo" alt="logoneotam" />
       </figure>
     </div>
