@@ -2997,7 +2997,7 @@ onMounted(() => {
         ? apiMetric(apiContent, "arr_score")
         : (fallback?.arr ?? 0);
       const timeshiftViewers = hasApiContent
-        ? apiNumber(apiContent, "AVG(total_unique_viewers_tsv)")
+        ? apiNumber(apiContent, "AVG(tsv_sample_count)")
         : (fallback?.reach ?? 0);
       const timeshiftScore = hasApiContent
         ? apiMetric(apiContent, "tsv_score")
@@ -3048,7 +3048,7 @@ onMounted(() => {
           "TSV",
           timeshiftScore,
           timeshiftViewers,
-          "%",
+          "",
           HEX(timeshiftScore),
         );
     }
