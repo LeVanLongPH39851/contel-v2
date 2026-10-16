@@ -178,7 +178,10 @@ export const chart1115 = {
         optionName: "metric_8pr7vamrbku_t1erxp8yw2f",
         sqlExpression: null,
       },
-      url_params: {},
+      url_params: {
+        native_filters_key:
+          "AUvOaLPK2aVKJUA4MySGtsNUBTbjg8WSTj91K-P7P2-XW0svXrcwm_lgsmBzoZ5f",
+      },
       viz_type: "table",
     },
     queries: [
@@ -340,7 +343,10 @@ export const chart1115 = {
         },
         time_offsets: [],
         time_range: "2026-01-26T00:00:00 : 2026-01-31T00:00:00",
-        url_params: {},
+        url_params: {
+          native_filters_key:
+            "AUvOaLPK2aVKJUA4MySGtsNUBTbjg8WSTj91K-P7P2-XW0svXrcwm_lgsmBzoZ5f",
+        },
       },
     ],
     result_format: "json",

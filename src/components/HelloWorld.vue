@@ -4,13 +4,16 @@
     class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-5 py-3.5 flex items-center gap-4 flex-wrap"
   >
     <div class="flex items-center gap-2.5">
-      <span class="sq"
+      <!-- <span class="sq"
         ><i></i><i class="o"></i><i class="o"></i><i></i><i></i><i class="o"></i
       ></span>
       <span
         class="font-extrabold text-[15px] tracking-[.14em] text-slate-900 dark:text-white"
         >NE<span class="text-cyan-400">O</span>TAM</span
-      >
+      > -->
+      <figure class="w-24">
+        <img :src="neotamLogo" alt="logoneotam" />
+      </figure>
     </div>
     <span class="w-px h-7 bg-slate-200 dark:bg-slate-700"></span>
     <div>
@@ -1367,6 +1370,7 @@
 import { onMounted, watch } from "vue";
 import { useDashboardData } from "../composables/useDashboardData";
 import { useDashboardFilters } from "../composables/useDashboardFilters";
+import neotamLogo from "../assets/neotam.png";
 
 const dashboard = useDashboardData() as any;
 
@@ -1501,6 +1505,11 @@ onMounted(() => {
     "VTV5",
     "VTV5 Tây Nguyên",
     "VTV5 Tây Nam Bộ",
+    "VTV6",
+    "VTV7",
+    "VTV8",
+    "VTV9",
+    "VTV10",
     "VIETNAM TODAY",
   ];
   const TIME_GROUPS: string[] = [
@@ -2047,7 +2056,7 @@ onMounted(() => {
     days: null,
     start: null,
     end: null,
-    channel: [],
+    channel: ["VTV1"],
     time: [],
     weekday: [],
     sort: "content_score",
